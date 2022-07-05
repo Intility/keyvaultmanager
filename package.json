@@ -1,0 +1,25 @@
+{
+  "name": "keyvaultmanager",
+  "version": "",
+  "description": "",
+  "scripts": {
+    "test": "echo \"No tests yet...\""
+  },
+  "author": "",
+  "dependencies": {
+    "@aaronpowell/azure-functions-nodejs-openapi": "^0.3.0",
+    "@azure/data-tables": "^13.0.1",
+    "@azure/identity": "^2.0.4",
+    "@azure/keyvault-secrets": "^4.3.0",
+    "@joi/date": "^2.1.0",
+    "@sendgrid/mail": "^7.6.2",
+    "@sentry/node": "^6.19.7",
+    "axios": "^0.26.0",
+    "joi": "^17.6.0",
+    "twilio": "^3.76.0"
+  },
+  "devDependencies": {
+    "@azure/identity-vscode": "^1.0.0",
+    "@azure/logger": "^1.0.3"
+  }
+}
