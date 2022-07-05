@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-COPY . /home/site/wwwroot
+USER node
+
+COPY --chown=node:node . /home/site/wwwroot
 
 WORKDIR /home/site/wwwroot
 
