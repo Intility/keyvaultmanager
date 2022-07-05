@@ -1,0 +1,20 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Kaniko build
+        uses: aevea/action-kaniko@master
+        with:
+          image: intility/keyvaultmanager
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PW }}
+          tag: ${{ github.GITHUB_REF }}
+          tag_with_latest: true
