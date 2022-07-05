@@ -18,9 +18,3 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PW }}
           tag: ${{ github.GITHUB_REF }}
           tag_with_latest: true
-      - name: Docker Hub Description
-        uses: peter-evans/dockerhub-description@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_PW }}
-          repository: intility/keyvaultmanager
