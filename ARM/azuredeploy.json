@@ -1,0 +1,922 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for the resources"
+            }
+        },
+        "tenantId": {
+            "type": "string",
+            "defaultValue": "[subscription().tenantId]",
+            "metadata": {
+                "description": "Tenant id for the resources"
+            }
+        },
+        "deleteLocks": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Set to true to add delete locks on the resources"
+            }
+        },
+        "resourceTags": {
+            "type": "object",
+            "defaultValue": {
+                "Department": "",
+                "CostCenter": "",
+                "ServiceName": "",
+                "Environment": ""
+            },
+            "metadata": {
+                "description": "Resource tags of your choice"
+            }
+        },
+        "logAnalyticsWorkspaceName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add name of existing log analytics workspace for diagnostic settings (optional)"
+            }
+        },
+        "applicationInsightsName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add name of existing application insights for function app integration (optional)"
+            }
+        },
+        "serviceName": {
+            "type": "string",
+            "defaultValue": "kvmgr",
+            "allowedValues": ["kvmgr"],
+            "metadata": {
+                "description": "Used as base for key vault manager resource names"
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add name of existing key vault, or leave empty to create new key vault"
+            }
+        },
+        "keyvaultPermissions": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If new key vault fill in your user object id"
+            }
+        },
+        "appServicePlanName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add name of existing app service plan, or leave empty to create new plan (P1V2)"
+            }
+        },
+        "whitelistIp": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add IP (CIDR) to whitelist traffic to key vault manager (from your client to the api)"
+            }
+        },
+        "appImageVersion": {
+            "type": "string",
+            "defaultValue": "latest",
+            "metadata": {
+                "description": "Add key vault manager image version (specific version or latest)"
+            }
+        },
+        "authClientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add client id of pre-created app reg for auth"
+            }
+        },
+        "authSecret": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add secret of pre-created app reg for auth"
+            }
+        },
+        "teamsWebhookUrl": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add teams channel webhook url for alerts (optional)"
+            }
+        },
+        "slackWebhookUrl": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Add slack channel webhook url for alerts (optional)"
+            }
+        },
+        "sendgridInfo": {
+            "type": "secureObject",
+            "defaultValue": {
+                "sendgridApiKey": "",
+                "sendgridFromAddress": "",
+                "sendgridToAddress": ""
+            },
+            "metadata": {
+                "description": "Add sendgrid info for email alerts (optional)"
+            }
+        },
+        "twilioInfo": {
+            "type": "secureObject",
+            "defaultValue": {
+                "twilioAccountSid": "",
+                "twilioAuthToken": "",
+                "twilioMessagingSid": "",
+                "twilioToNumber": ""
+            },
+            "metadata": {
+                "description": "Add twilio info for sms alerts (optional)"
+            }
+        }
+    },
+    "variables": {
+        "keyVaultName": "[concat('kv-common-', uniqueString(resourceGroup().id))]",
+        "keyVaultSku": {
+            "family": "A",
+            "name": "Standard"
+        },
+        "appServicePlanName": "[concat('plan-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]",
+        "skuName": "P1v2",
+        "storageAccountName": "[concat('st', parameters('serviceName'), uniqueString(resourceGroup().id))]",
+        "storageAccountInfraSku": {
+            "name": "Standard_LRS",
+            "tier": "Standard"
+        },
+        "functionAppName": "[concat('func-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]",
+        "appImageRepo": "intility",
+        "appImageName": "keyvaultmanager",
+        "accessRestriction": {
+            "ipAddress": "[parameters('whitelistIp')]",
+            "action": "Allow",
+            "tag": "Default",
+            "priority": 100,
+            "name": "Whitelist",
+            "description": "Whitelist client ip"
+        },
+        "openIdIssuer": "[concat('https://sts.windows.net/', parameters('tenantId'), '/v2.0')]",
+        "applicationInsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('applicationInsightsName'))]",
+        "storageAccountResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', if(not(empty(parameters('keyVaultName'))), parameters('keyVaultName'), variables('keyVaultName')))]",
+        "storageAccountEndpointSuffix": "[environment().suffixes.storage]",
+        "eventTopicName": "[concat('evgt-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]",
+        "eventSubscriptionName": "[concat('evgs-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]"
+    },
+    "resources": [
+        {
+            "comments": "Key vault",
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('keyVaultName')]",
+            "condition": "[empty(parameters('keyVaultName'))]",
+            "apiVersion": "2021-10-01",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enableRbacAuthorization": false,
+                "tenantId": "[parameters('tenantId')]",
+                "sku": "[variables('keyVaultSku')]",
+                "enableSoftDelete": true,
+                "softDeleteRetentionInDays": 90,
+                "enablePurgeProtection": true,
+                "accessPolicies": [
+                    {
+                        "tenantId": "[parameters('tenantId')]",
+                        "objectId": "[parameters('keyvaultPermissions')]",
+                        "permissions": {
+                            "keys": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore"
+                            ],
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore"
+                            ],
+                            "certificates": [
+                                "Get",
+                                "List",
+                                "Update",
+                                "Create",
+                                "Import",
+                                "Delete",
+                                "Recover",
+                                "Backup",
+                                "Restore",
+                                "ManageContacts",
+                                "ManageIssuers",
+                                "GetIssuers",
+                                "ListIssuers",
+                                "SetIssuers",
+                                "DeleteIssuers"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "resources": [
+                {
+                    "comments": "Lock to prevent accidental deletion",
+                    "type": "Microsoft.KeyVault/vaults/providers/locks",
+                    "apiVersion": "2017-04-01",
+                    "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/vaultLock')]",
+                    "condition": "[parameters('deleteLocks')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "level": "CanNotDelete",
+                        "notes": "This should not be deleted."
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "AuditEvent",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "comments": "App service plan for key vault management function app",
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2021-03-01",
+            "name": "[variables('appServicePlanName')]",
+            "condition": "[empty(parameters('appServicePlanName'))]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "kind": "linux",
+            "properties": {
+                "reserved": true
+            },
+            "sku": {
+                "Name": "[variables('skuName')]"
+            },
+            "resources": [
+                {
+                    "comments": "Lock to prevent accidental deletion",
+                    "type": "Microsoft.Web/serverfarms/providers/locks",
+                    "apiVersion": "2017-04-01",
+                    "name": "[concat(variables('appServicePlanName'), '/Microsoft.Authorization/deleteLock')]",
+                    "condition": "[parameters('deleteLocks')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                    ],
+                    "properties": {
+                        "level": "CanNotDelete",
+                        "notes": "Should not be deleted."
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Web/serverfarms/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('appServicePlanName'), '/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "comments": "Storage account for function app",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2021-08-01",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "sku": "[variables('storageAccountInfraSku')]",
+            "kind": "StorageV2",
+            "properties": {
+                "minimumTlsVersion": "TLS1_2",
+                "allowBlobPublicAccess": false
+            },
+            "resources": [
+                {
+                    "type": "Microsoft.Storage/storageAccounts/blobServices",
+                    "apiVersion": "2021-08-01",
+                    "name": "[concat(variables('storageAccountName'), '/default')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "sku": "[variables('storageAccountInfraSku')]",
+                    "properties": {
+                        "deleteRetentionPolicy": {
+                            "enabled": true,
+                            "days": 7
+                        }
+                    }
+                },
+                {
+                    "type": "Microsoft.Storage/storageAccounts/fileServices",
+                    "apiVersion": "2021-08-01",
+                    "name": "[concat(variables('storageAccountName'), '/default')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "sku": "[variables('storageAccountInfraSku')]",
+                    "properties": {
+                        "shareDeleteRetentionPolicy": {
+                            "enabled": true,
+                            "days": 7
+                        }
+                    }
+                },
+                {
+                    "comments": "Lock to prevent accidental deletion",
+                    "type": "Microsoft.Storage/storageAccounts/providers/locks",
+                    "apiVersion": "2017-04-01",
+                    "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/storageLock')]",
+                    "condition": "[parameters('deleteLocks')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "level": "CanNotDelete",
+                        "notes": "This should not be deleted."
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Storage/storageAccounts/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Storage/storageAccounts/blobServices/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "StorageRead",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageWrite",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageDelete",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Storage/storageAccounts/fileServices/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "StorageRead",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageWrite",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageDelete",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Storage/storageAccounts/queueServices/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "StorageRead",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageWrite",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageDelete",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Storage/storageAccounts/tableServices/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('storageAccountName'), '/default/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "StorageRead",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageWrite",
+                                "enabled": true
+                            },
+                            {
+                                "category": "StorageDelete",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "Transaction",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Table for key vault manager",
+                    "type": "Microsoft.Storage/storageAccounts/tableServices/tables",
+                    "name": "[concat(variables('storageAccountName'), '/default/keyVaultAssetMetadata')]",
+                    "apiVersion": "2021-09-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Function app for key vault management",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-03-01",
+            "name": "[variables('functionAppName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+            ],
+            "kind": "functionapp,linux,container",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "serverFarmId": "[if(not(empty(parameters('appServicePlanName'))), resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName')), resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName')))]",
+                "httpsOnly": true,
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=',listKeys(variables('storageAccountResourceId'), '2021-08-01').keys[0].value, ';EndpointSuffix=', variables('storageAccountEndpointSuffix'))]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "https://index.docker.io"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                            "value": ""
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": ""
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+                            "value": 30
+                        },
+                        {
+                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                            "value": false
+                        }
+                    ],
+                    "linuxFxVersion": "[concat('DOCKER|', variables('appImageRepo'), '/', variables('appImageName'), ':', parameters('appImageVersion'))]",
+                    "remoteDebuggingEnabled": false,
+                    "alwaysOn": true,
+                    "http20Enabled": true,
+                    "httpLoggingEnabled": true,
+                    "logsDirectorySizeLimit": 35,
+                    "ftpsState": "Disabled",
+                    "scmIpSecurityRestrictionsUseMain": false,
+                    "ipSecurityRestrictions": [
+                        {
+                            "ipAddress": "AzureEventGrid",
+                            "action": "Allow",
+                            "tag": "ServiceTag",
+                            "priority": 10,
+                            "name": "EventGrid"
+                        },
+                        "[variables('accessRestriction')]",
+                        {
+                            "ipAddress": "Any",
+                            "action": "Deny",
+                            "priority": 2147483647,
+                            "name": "Deny all",
+                            "description": "Deny all access"
+                        }
+                    ],
+                    "scmIpSecurityRestrictions": [
+                        "[variables('accessRestriction')]",
+                        {
+                            "ipAddress": "Any",
+                            "action": "Deny",
+                            "priority": 2147483647,
+                            "name": "Deny all",
+                            "description": "Deny all access"
+                        }
+
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "comments": "Lock to prevent accidental deletion",
+                    "type": "Microsoft.Web/sites/providers/locks",
+                    "apiVersion": "2017-04-01",
+                    "name": "[concat(variables('functionAppName'), '/Microsoft.Authorization/deleteLock')]",
+                    "condition": "[parameters('deleteLocks')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "level": "CanNotDelete",
+                        "notes": "This should not be deleted."
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.Web/sites/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('functionAppName'), '/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "FunctionAppLogs",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Auth config",
+                    "type": "Microsoft.Web/sites/config",
+                    "name": "[concat(variables('functionAppName'), '/authsettingsV2')]",
+                    "apiVersion": "2021-03-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "platform": {
+                            "enabled": true,
+                            "runtimeVersion": "~1"
+                        },
+                        "globalValidation": {
+                            "requireAuthentication": true,
+                            "unauthenticatedClientAction": "RedirectToLoginPage",
+                            "redirectToProvider": "azureactivedirectory"
+                        },
+                        "identityProviders": {
+                            "azureActiveDirectory": {
+                                "enabled": true,
+                                "registration": {
+                                    "openIdIssuer": "[variables('openIdIssuer')]",
+                                    "clientId": "[parameters('authClientId')]",
+                                    "clientSecretSettingName": "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
+                                },
+                                "login": {
+                                    "disableWWWAuthenticate": false
+                                },
+                                "validation": {
+                                    "allowedAudiences": [
+                                        "[concat('api://', parameters('authClientId'))]"
+                                    ]
+                                }
+                            }
+                        },
+                        "login": {
+                            "tokenStore": {
+                                "enabled": true,
+                                "tokenRefreshExtensionHours": 72
+                            },
+                            "preserveUrlFragmentsForLogins": false,
+                            "cookieExpiration": {
+                                "convention": "FixedTime",
+                                "timeToExpiration": "08:00:00"
+                            },
+                            "nonce": {
+                                "validateNonce": true,
+                                "nonceExpirationInterval": "00:05:00"
+                            }
+                        },
+                        "httpSettings": {
+                            "requireHttps": true,
+                            "routes": {
+                                "apiPrefix": "/.auth"
+                            },
+                            "forwardProxy": {
+                                "convention": "NoProxy"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "comments": "Event grid system topic for key vault",
+            "type": "Microsoft.EventGrid/systemTopics",
+            "apiVersion": "2021-12-01",
+            "name": "[variables('eventTopicName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('resourceTags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', if(not(empty(parameters('keyVaultName'))), parameters('keyVaultName'), variables('keyVaultName')))]",
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            ],
+            "properties": {
+                "source": "[resourceId('Microsoft.KeyVault/vaults', if(not(empty(parameters('keyVaultName'))), parameters('keyVaultName'), variables('keyVaultName')))]",
+                "topicType": "Microsoft.KeyVault.Vaults"
+            },
+            "resources": [
+                {
+                    "comments": "Lock to prevent accidental deletion",
+                    "type": "Microsoft.EventGrid/systemTopics/providers/locks",
+                    "apiVersion": "2017-04-01",
+                    "name": "[concat(variables('eventTopicName'), '/Microsoft.Authorization/deleteLock')]",
+                    "condition": "[parameters('deleteLocks')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventGrid/systemTopics', variables('eventTopicName'))]"
+                    ],
+                    "properties": {
+                        "level": "CanNotDelete",
+                        "notes": "This should not be deleted."
+                    }
+                },
+                {
+                    "comments": "Diagnostic settings",
+                    "type": "Microsoft.EventGrid/systemTopics/providers/diagnosticsettings",
+                    "apiVersion": "2021-05-01-preview",
+                    "name": "[concat(variables('eventTopicName'), '/Microsoft.Insights/SendToLAW')]",
+                    "location": "[parameters('location')]",
+                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.EventGrid/systemTopics', variables('eventTopicName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+                        "logs": [
+                            {
+                                "category": "DeliveryFailures",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "comments": "Event grid subscription for key vault events",
+                    "type": "Microsoft.EventGrid/systemTopics/eventSubscriptions",
+                    "apiVersion": "2021-12-01",
+                    "name": "[concat(variables('eventTopicName'), '/', variables('eventSubscriptionName'))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                        "[resourceId('Microsoft.EventGrid/systemTopics', variables('eventTopicName'))]"
+                    ],
+                    "properties": {
+                        "destination": {
+                            "endpointType": "WebHook",
+                            "properties": {
+                                "endpointUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EventGridTrigger1&code=', listKeys(resourceId('Microsoft.Web/sites/host/', variables('functionAppName'), 'default'),'2021-03-01').systemkeys.eventgrid_extension)]",
+                                "maxEventsPerBatch": 1,
+                                "preferredBatchSizeInKilobytes": 64,
+                                "azureActiveDirectoryApplicationIdOrUri": "[parameters('authClientId')]",
+                                "azureActiveDirectoryTenantId": "[parameters('tenantId')]"
+                            }
+                        },
+                        "filter": {
+                            "includedEventTypes": [
+                                "Microsoft.KeyVault.SecretNewVersionCreated",
+                                "Microsoft.KeyVault.SecretNearExpiry",
+                                "Microsoft.KeyVault.SecretExpired",
+                                "Microsoft.KeyVault.CertificateNewVersionCreated",
+                                "Microsoft.KeyVault.CertificateNearExpiry",
+                                "Microsoft.KeyVault.CertificateExpired",
+                                "Microsoft.KeyVault.KeyNewVersionCreated",
+                                "Microsoft.KeyVault.KeyNearExpiry",
+                                "Microsoft.KeyVault.KeyExpired"
+                            ],
+                            "enableAdvancedFilteringOnArrays": true
+                        },
+                        "eventDeliverySchema": "EventGridSchema",
+                        "retryPolicy": {
+                            "maxDeliveryAttempts": 30,
+                            "eventTimeToLiveInMinutes": 1440
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "comments": "Function app application settings",
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(variables('functionAppName'), '/appsettings')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                "[resourceId('Microsoft.EventGrid/systemTopics/eventSubscriptions', variables('eventTopicName'), variables('eventSubscriptionName'))]"
+            ],
+            "properties": {
+                "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey]",
+                "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString]",
+                "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=',listKeys(variables('storageAccountResourceId'), '2021-08-01').keys[0].value, ';EndpointSuffix=', variables('storageAccountEndpointSuffix'))]",
+                "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
+                "DOCKER_REGISTRY_SERVER_USERNAME": "",
+                "DOCKER_REGISTRY_SERVER_PASSWORD": "",
+                "FUNCTIONS_EXTENSION_VERSION": "~3",
+                "WEBSITE_HTTPLOGGING_RETENTION_DAYS": 30,
+                "WEBSITES_ENABLE_APP_SERVICE_STORAGE": false,
+                "NODE_ENV": "production",
+                "eventGridTopic": "[variables('keyVaultResourceId')]",
+                "keyVaultUrl": "[reference(variables('keyVaultResourceId'), '2021-10-01').vaultUri]",
+                "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET": "[parameters('authSecret')]",
+                "teamsWebhookUrl": "[parameters('teamsWebhookUrl')]",
+                "slackWebhookUrl": "[parameters('slackWebhookUrl')]",
+                "sendgridApiKey": "[parameters('sendgridInfo').sendgridApiKey]",
+                "sendgridFromAddress": "[parameters('sendgridInfo').sendgridFromAddress]",
+                "sendgridToAddress": "[parameters('sendgridInfo').sendgridToAddress]",
+                "twilioAccountSid": "[parameters('twilioInfo').twilioAccountSid]",
+                "twilioAuthToken": "[parameters('twilioInfo').twilioAuthToken]",
+                "twilioMessagingSid": "[parameters('twilioInfo').twilioMessagingSid]",
+                "twilioToNumber": "[parameters('twilioInfo').twilioToNumber]"
+            }
+        },
+        {
+            "comments": "Key vault access policy for kvmgr function",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "apiVersion": "2021-10-01",
+            "name": "[concat(if(not(empty(parameters('keyVaultName'))), parameters('keyVaultName'), variables('keyVaultName')), '/add')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            ],
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[parameters('tenantId')]",
+                        "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('functionAppName')),'2021-03-01', 'Full').identity.principalId]",
+                        "permissions": {
+                            "secrets": [
+                                "Get",
+                                "List",
+                                "Set",
+                                "Delete"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
