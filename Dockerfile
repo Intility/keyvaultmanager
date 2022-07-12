@@ -8,14 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
-#RUN groupadd --gid 1000 node \
-#    && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
-
 #COPY --chown=node:node . /home/site/wwwroot
 COPY . /home/site/wwwroot
 
 WORKDIR /home/site/wwwroot
 
 RUN npm ci --only=production
-
-#USER node
