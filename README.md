@@ -51,5 +51,5 @@ Swagger docs available at https://func-kvmgr-{id}.azurewebsites.net/api/swagger.
 
 ## Limitations
 
-Key vault manager currently supports management of one key vault.\
-Key vualt manager currently supports handling secrets asset type.
+Key vault manager currently supports one key vault.\
+Key vualt manager currently supports secrets (not keys and certificates).
