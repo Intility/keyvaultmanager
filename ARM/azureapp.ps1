@@ -288,7 +288,7 @@ try {
   }
   # Test if new or existing app reg
   if (!$app) {
-    Write-Host "Creating the Key Vault Manager application registration."
+    Write-Host "Creating Key Vault Manager application registration."
     $app = New-AzADApplication -DisplayName $appName -Description $appDescription -AvailableToOtherTenants $False -Web $web -Api $api
   }
   else {
@@ -399,11 +399,11 @@ try {
 
   # role assignment for event grid
   Write-Host "Creating role assignment for Azure Event Grid."
-  $eventGridAppRole = $app.AppRole | Where-Object -Property "DisplayName" -eq -Value $eventGridRoleName
+  $eventGridAppRole = $appRole | Where-Object -Property "DisplayName" -eq -Value $eventGridRoleName
   # dependant on old azure ad moodule
   Connect-AzureAd
   try {
-    New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $eventGridSP.Id -ErrorAction SilentlyContinue
+    $null = New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $eventGridSP.Id -ErrorAction SilentlyContinue
   }
   catch {
     $message = (Get-Error).Exception.ErrorContent.Message.Value
@@ -418,7 +418,7 @@ try {
     if ($deployUser) {
       Write-Host "Creating role assignment for deployment user."
       try {
-        New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $deployUser.Id -ErrorAction SilentlyContinue
+        $null = New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $deployUser.Id -ErrorAction SilentlyContinue
       }
       catch {
         $message = (Get-Error).Exception.ErrorContent.Message.Value
@@ -429,7 +429,7 @@ try {
     if ($deploySP) {
       Write-Host "Creating role assignment for deployment service principal."
       try {
-        New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $deploySP.Id -ErrorAction SilentlyContinue
+        $null = New-AzureADServiceAppRoleAssignment -Id $eventGridAppRole.Id -ResourceId $kvmgrSP.Id -ObjectId $kvmgrSP.Id -PrincipalId $deploySP.Id -ErrorAction SilentlyContinue
       }
       catch {
         $message = (Get-Error).Exception.ErrorContent.Message.Value
