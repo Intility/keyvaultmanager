@@ -1,16 +1,16 @@
 # Key vault manager
 
-Key vault manager is a management tool to keep track of key vault assets (like secrets). It validates the assets for necessary properties, keeps track of where they are used, near expiry and expiration and alerts you in your preferred channel (Teams, Slack, email and sms). The tool is built as an azure function. All required resources are deployed with the arm template. You can choose if you want to deploy the function app to an existing app service plan or create a new one. You can also choose to manage an existing key vault or deploy a new key vault.
+Key vault manager is a management tool to keep track of Azure Key Vault assets (like secrets). It validates the assets for necessary properties, keeps track of where they are used, near expiry and expiration and alerts you in your preferred channel (Teams, Slack, email and SMS). The tool is built as an Azure Function App. All required resources are deployed with the ARM template. You can choose if you want to deploy the Function App to an existing App Service Plan or create a new one. You can also choose to manage an existing Key Vault or deploy a new Key Vault.
 
-Key vault manager includes event and timer triggered functions for automation as well as a CRUD api to manage secrets. The api currently supports get all secrets, get a specific secret, post a secret, patch a secret, put a secret version and delete a secret.
-The function app has access restrictions so you will only reach it from the whitelisted IP you add during deployment. It is protected with azure ad authentication and authorization with reader and writer roles.
+Key vault manager includes event and timer triggered functions for automation as well as a CRUD API to manage secrets. The API currently supports get all secrets, get secret, post secret, patch secret, put secret version and delete secret.
+The Function App has access restrictions so you will only reach it from the whitelisted IP you add during deployment. It is protected with Azure AD authentication and authorization with reader and writer roles.
 
 ## Deployment steps
 
 ### Create application
 
 1. Sign in to your Azure tenant. Global admin or application amdin permission is required.
-2. Copy [azureapp.ps1](https://github.com/Intility/keyvaultmanager/tree/main/ARM/azureapp.ps1) locally. Add the name of the resource group you are going to deploy to and the object id of the user or service principal of the account thats going run the deploymen in the variables $resourceGroupName and $deploymentObjectId.
+2. Copy [azureapp.ps1](https://github.com/Intility/keyvaultmanager/tree/main/ARM/azureapp.ps1) locally. Add the name of the resource group you are going to deploy to and the object id of the user or service principal of the account thats going run the deployment in the variables $resourceGroupName and $deploymentObjectId.
 3. Open cloud shell in Azure portal and run the azureapp.ps1 script.
 4. Take note of the application id and secret.
 
@@ -25,7 +25,7 @@ The function app has access restrictions so you will only reach it from the whit
 
 ### API access
 
-To configure access to the key vault manager API you have to assign the reader or writer role. From the Azure portal navigate to Azure Active Directory, Enterprise applications, "keyvaultmanager-{id}". Click Users and groups blade, Add user/group and select users/groups and role KeyVaultManagerReader or KeyVaultManagerWriter as required.\
+To configure access to the Key vault manager API you have to assign the reader or writer role. From the Azure portal navigate to Azure Active Directory, Enterprise applications, "keyvaultmanager-{id}". Click Users and groups blade, Add user/group and select users/groups and role KeyVaultManagerReader or KeyVaultManagerWriter as required.\
 
 ### Alert channels
 
@@ -35,7 +35,7 @@ To configure Teams alerts create an [incoming webhook](https://docs.microsoft.co
 
 #### Slack
 
-To configure Slack alerts create an [incoming webhook](https://slack.com/help/articles/115005265063-Incoming-webhooks-for-Slack) and paste the url in the app setting "teamsWebhookUrl".
+To configure Slack alerts create an [incoming webhook](https://slack.com/help/articles/115005265063-Incoming-webhooks-for-Slack) and paste the url in the app setting "slackWebhookUrl".
 
 #### Email (Sendgrid)
 
