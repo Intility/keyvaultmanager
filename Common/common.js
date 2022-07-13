@@ -70,4 +70,20 @@ module.exports = class common {
       throw new Error("403");
     }
   }
+
+  // secret expired check
+  isExpired(date) {
+    const yesteryesterday = new Date();
+    yesteryesterday.setDate(yesteryesterday.getDate() - 2);
+    return yesteryesterday > date;
+  }
+
+  // convert tags to string
+  convertTags(myObj) {
+    Object.keys(myObj).forEach(function (key) {
+      typeof myObj[key] === "object"
+        ? replace(myObj[key])
+        : (myObj[key] = String(myObj[key]));
+    });
+  }
 };

@@ -96,15 +96,8 @@ const httpTrigger = async function (context, req) {
   if (!updatedSecretOptions.tags.metadataUrl) {
     updatedSecretOptions.tags.metadataUrl = req.url + "/metadata";
   }
-  // convert tags to string
-  function replace(myObj) {
-    Object.keys(myObj).forEach(function (key) {
-      typeof myObj[key] === "object"
-        ? replace(myObj[key])
-        : (myObj[key] = String(myObj[key]));
-    });
-  }
-  replace(updatedSecretOptions.tags);
+
+  utils.convertTags(updatedSecretOptions.tags);
 
   let secret;
 
