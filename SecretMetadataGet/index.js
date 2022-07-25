@@ -90,56 +90,59 @@ const httpTrigger = async function (context, req) {
   }
 };
 
-module.exports = mapOpenApi3(httpTrigger, "/secret/{name}/metadata", {
-  get: {
-    tags: ["secret"],
-    summary: "Get secret metadata",
-    description: "",
-    parameters: [
-      {
-        name: "name",
-        in: "path",
-        required: true,
-        description: "Secret name",
-        schema: {
-          type: "string",
+module.exports = {
+  httpTrigger,
+  run: mapOpenApi3(httpTrigger, "/secret/{name}/metadata", {
+    get: {
+      tags: ["secret"],
+      summary: "Get secret metadata",
+      description: "",
+      parameters: [
+        {
+          name: "name",
+          in: "path",
+          required: true,
+          description: "Secret name",
+          schema: {
+            type: "string",
+          },
         },
-      },
-    ],
-    responses: {
-      200: {
-        description: "Returns a secret",
-        content: {
-          "application/json": {
-            example: {
-              consumer1: "https://secret.used.here",
+      ],
+      responses: {
+        200: {
+          description: "Returns a secret",
+          content: {
+            "application/json": {
+              example: {
+                consumer1: "https://secret.used.here",
+              },
             },
           },
         },
-      },
-      401: {
-        description: "Unauthorized",
-      },
-      403: {
-        description: "Access denied, missing required role",
-        content: {
-          "text/plain": {
-            examples:
-              "Access denied, key vault manager does not have access to the key vault.",
+        401: {
+          description: "Unauthorized",
+        },
+        403: {
+          description: "Access denied, missing required role",
+          content: {
+            "text/plain": {
+              examples:
+                "Access denied, key vault manager does not have access to the key vault.",
+            },
           },
         },
-      },
-      404: {
-        description: "Secret not found",
-        content: {
-          "text/plain": {
-            example: `Secret {name} was not found.`,
+        404: {
+          description: "Secret not found",
+          content: {
+            "text/plain": {
+              example: `Secret {name} was not found.`,
+            },
           },
         },
-      },
-      500: {
-        description: "Internal server error",
+        500: {
+          description: "Internal server error",
+        },
       },
     },
-  },
-});
+  }),
+};

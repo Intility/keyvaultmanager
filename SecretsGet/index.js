@@ -44,95 +44,98 @@ const httpTrigger = async function (context, req) {
   }
 };
 
-module.exports = mapOpenApi3(httpTrigger, "/secret", {
-  get: {
-    tags: ["secret"],
-    summary: "Get all secrets in key vault",
-    description: "",
-    responses: {
-      200: {
-        description: "Returns array of secrets",
-        content: {
-          "application/json": {
-            example: [
-              {
-                expiresOn: "2022-02-01T12:00:00.000Z",
-                createdOn: "2022-01-01T12:00:00.000Z",
-                updatedOn: "2022-02-02T12:00:00.000Z",
-                enabled: true,
-                notBefore: "2022-01-01T12:00:00.000Z",
-                recoverableDays: 90,
-                recoveryLevel: "Recoverable",
-                id: "https://keyvaultname.vault.azure.net/secrets/Secret1/44afcd5415474a0e9ff13878c3c16fb8",
-                contentType: "test",
-                tags: {
-                  managed: "true",
-                  autoRotate: "false",
-                  ownerUri: "https://secret.owned.here",
-                  metadataUrl:
-                    "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+module.exports = {
+  httpTrigger,
+  run: mapOpenApi3(httpTrigger, "/secret", {
+    get: {
+      tags: ["secret"],
+      summary: "Get all secrets in key vault",
+      description: "",
+      responses: {
+        200: {
+          description: "Returns array of secrets",
+          content: {
+            "application/json": {
+              example: [
+                {
+                  expiresOn: "2022-02-01T12:00:00.000Z",
+                  createdOn: "2022-01-01T12:00:00.000Z",
+                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  enabled: true,
+                  notBefore: "2022-01-01T12:00:00.000Z",
+                  recoverableDays: 90,
+                  recoveryLevel: "Recoverable",
+                  id: "https://keyvaultname.vault.azure.net/secrets/Secret1/44afcd5415474a0e9ff13878c3c16fb8",
+                  contentType: "test",
+                  tags: {
+                    managed: "true",
+                    autoRotate: "false",
+                    ownerUri: "https://secret.owned.here",
+                    metadataUrl:
+                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                  },
+                  vaultUrl: "https://keyvaultname.vault.azure.net",
+                  name: "Secret1",
                 },
-                vaultUrl: "https://keyvaultname.vault.azure.net",
-                name: "Secret1",
-              },
-              {
-                expiresOn: "2022-02-01T12:00:00.000Z",
-                createdOn: "2022-01-01T12:00:00.000Z",
-                updatedOn: "2022-02-02T12:00:00.000Z",
-                enabled: true,
-                notBefore: "2022-01-01T12:00:00.000Z",
-                recoverableDays: 90,
-                recoveryLevel: "Recoverable",
-                id: "https://keyvaultname.vault.azure.net/secrets/Secret2/44afcd5415474a0e9ff13878c3c16fb8",
-                contentType: "test",
-                tags: {
-                  managed: "true",
-                  autoRotate: "true",
-                  ownerUri: "https://secret.owned.here",
-                  metadataUrl:
-                    "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                {
+                  expiresOn: "2022-02-01T12:00:00.000Z",
+                  createdOn: "2022-01-01T12:00:00.000Z",
+                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  enabled: true,
+                  notBefore: "2022-01-01T12:00:00.000Z",
+                  recoverableDays: 90,
+                  recoveryLevel: "Recoverable",
+                  id: "https://keyvaultname.vault.azure.net/secrets/Secret2/44afcd5415474a0e9ff13878c3c16fb8",
+                  contentType: "test",
+                  tags: {
+                    managed: "true",
+                    autoRotate: "true",
+                    ownerUri: "https://secret.owned.here",
+                    metadataUrl:
+                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                  },
+                  vaultUrl: "https://keyvaultname.vault.azure.net",
+                  name: "Secret2",
                 },
-                vaultUrl: "https://keyvaultname.vault.azure.net",
-                name: "Secret2",
-              },
-              {
-                expiresOn: "2022-02-01T12:00:00.000Z",
-                createdOn: "2022-01-01T12:00:00.000Z",
-                updatedOn: "2022-02-02T12:00:00.000Z",
-                enabled: false,
-                notBefore: "2022-01-01T12:00:00.000Z",
-                recoverableDays: 90,
-                recoveryLevel: "Recoverable",
-                id: "https://keyvaultname.vault.azure.net/secrets/Secret3/44afcd5415474a0e9ff13878c3c16fb8",
-                contentType: "test",
-                tags: {
-                  managed: "false",
-                  autoRotate: "false",
-                  ownerUri: "https://secret.owned.here",
-                  metadataUrl:
-                    "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                {
+                  expiresOn: "2022-02-01T12:00:00.000Z",
+                  createdOn: "2022-01-01T12:00:00.000Z",
+                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  enabled: false,
+                  notBefore: "2022-01-01T12:00:00.000Z",
+                  recoverableDays: 90,
+                  recoveryLevel: "Recoverable",
+                  id: "https://keyvaultname.vault.azure.net/secrets/Secret3/44afcd5415474a0e9ff13878c3c16fb8",
+                  contentType: "test",
+                  tags: {
+                    managed: "false",
+                    autoRotate: "false",
+                    ownerUri: "https://secret.owned.here",
+                    metadataUrl:
+                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                  },
+                  vaultUrl: "https://keyvaultname.vault.azure.net",
+                  name: "Secret3",
                 },
-                vaultUrl: "https://keyvaultname.vault.azure.net",
-                name: "Secret3",
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-      401: {
-        description: "Unauthorized",
-      },
-      403: {
-        description: "Access denied, missing required role",
-        content: {
-          "text/plain": {
-            example: "Access denied, missing required role.",
+        401: {
+          description: "Unauthorized",
+        },
+        403: {
+          description: "Access denied, missing required role",
+          content: {
+            "text/plain": {
+              example: "Access denied, missing required role.",
+            },
           },
         },
-      },
-      500: {
-        description: "Internal server error",
+        500: {
+          description: "Internal server error",
+        },
       },
     },
-  },
-});
+  }),
+};

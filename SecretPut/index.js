@@ -195,148 +195,151 @@ const httpTrigger = async function (context, req) {
   }
 };
 
-module.exports = mapOpenApi3(httpTrigger, "/secret/{name}", {
-  put: {
-    tags: ["secret"],
-    summary: "Add new secret version and update tags/metadata in key vault",
-    description: "",
-    parameters: [
-      {
-        name: "name",
-        in: "path",
-        required: true,
-        description: "Secret name",
-        schema: {
-          type: "string",
-        },
-      },
-    ],
-    requestBody: {
-      description: "The new secret value and any updated tags/metadata",
-      content: {
-        "application/json": {
+module.exports = {
+  httpTrigger,
+  run: mapOpenApi3(httpTrigger, "/secret/{name}", {
+    put: {
+      tags: ["secret"],
+      summary: "Add new secret version and update tags/metadata in key vault",
+      description: "",
+      parameters: [
+        {
+          name: "name",
+          in: "path",
+          required: true,
+          description: "Secret name",
           schema: {
-            type: "object",
-            properties: {
-              value: {
-                description: "New secret value",
-                type: "string",
-              },
-              enabled: {
-                description: "Secret state",
-                type: "boolean",
-              },
-              contentType: {
-                description: "Secret content type",
-                type: "string",
-              },
-              notBefore: {
-                description: "Secret valid from",
-                type: "string",
-              },
-              expiresOn: {
-                description: "Secret valid to",
-                type: "string",
-              },
-              tags: {
-                description: "Secret tags",
-                type: "object",
-                properties: {
-                  managed: {
-                    description: "If secret is managed",
-                    type: "boolean",
-                  },
-                  autoRotate: {
-                    description: "If secret is auto rotated",
-                    type: "boolean",
-                  },
-                  owner: {
-                    description: "Secret owner resource URI",
-                    type: "string",
-                  },
-                },
-              },
-              metadata: {
-                description: "Secret tags",
-                type: "object",
-                properties: {
-                  consumer1: {
-                    description: "Uri for consumer 1 of the secret",
-                    type: "string",
-                  },
-                },
-              },
-            },
+            type: "string",
           },
         },
-      },
-    },
-    responses: {
-      200: {
-        description: "Returns new secret version",
+      ],
+      requestBody: {
+        description: "The new secret value and any updated tags/metadata",
         content: {
           "application/json": {
-            example: {
-              value: "realyTopSecret123!",
-              name: "ThisIsTheSecret",
+            schema: {
+              type: "object",
               properties: {
-                expiresOn: "2022-02-01T12:00:00.000Z",
-                createdOn: "2022-01-01T12:00:00.000Z",
-                updatedOn: "2022-02-02T12:00:00.000Z",
-                enabled: true,
-                notBefore: "2022-01-01T12:00:00.000Z",
-                recoverableDays: 90,
-                recoveryLevel: "Recoverable",
-                id: "https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8",
-                contentType: "test",
-                tags: {
-                  managed: "true",
-                  autoRotate: "false",
-                  ownerUri: "https://secret.owned.here",
-                  metadataUrl:
-                    "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                value: {
+                  description: "New secret value",
+                  type: "string",
                 },
-                vaultUrl: "https://keyvaultname.vault.azure.net",
-                version: "44afcd5415474a0e9ff13878c3c16fb8",
-                name: "ThisIsTheSecret",
+                enabled: {
+                  description: "Secret state",
+                  type: "boolean",
+                },
+                contentType: {
+                  description: "Secret content type",
+                  type: "string",
+                },
+                notBefore: {
+                  description: "Secret valid from",
+                  type: "string",
+                },
+                expiresOn: {
+                  description: "Secret valid to",
+                  type: "string",
+                },
+                tags: {
+                  description: "Secret tags",
+                  type: "object",
+                  properties: {
+                    managed: {
+                      description: "If secret is managed",
+                      type: "boolean",
+                    },
+                    autoRotate: {
+                      description: "If secret is auto rotated",
+                      type: "boolean",
+                    },
+                    owner: {
+                      description: "Secret owner resource URI",
+                      type: "string",
+                    },
+                  },
+                },
                 metadata: {
-                  consumer1: "https://secret.used.here",
+                  description: "Secret tags",
+                  type: "object",
+                  properties: {
+                    consumer1: {
+                      description: "Uri for consumer 1 of the secret",
+                      type: "string",
+                    },
+                  },
                 },
               },
             },
           },
         },
       },
-      401: {
-        description: "Unauthorized",
-      },
-      403: {
-        description: "Access denied, missing required role",
-        content: {
-          "text/plain": {
-            example: "Access denied, missing required role.",
+      responses: {
+        200: {
+          description: "Returns new secret version",
+          content: {
+            "application/json": {
+              example: {
+                value: "realyTopSecret123!",
+                name: "ThisIsTheSecret",
+                properties: {
+                  expiresOn: "2022-02-01T12:00:00.000Z",
+                  createdOn: "2022-01-01T12:00:00.000Z",
+                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  enabled: true,
+                  notBefore: "2022-01-01T12:00:00.000Z",
+                  recoverableDays: 90,
+                  recoveryLevel: "Recoverable",
+                  id: "https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8",
+                  contentType: "test",
+                  tags: {
+                    managed: "true",
+                    autoRotate: "false",
+                    ownerUri: "https://secret.owned.here",
+                    metadataUrl:
+                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                  },
+                  vaultUrl: "https://keyvaultname.vault.azure.net",
+                  version: "44afcd5415474a0e9ff13878c3c16fb8",
+                  name: "ThisIsTheSecret",
+                  metadata: {
+                    consumer1: "https://secret.used.here",
+                  },
+                },
+              },
+            },
           },
         },
-      },
-      404: {
-        description: "Secret not found",
-        content: {
-          "text/plain": {
-            example: `Secret "secretname" was not found.`,
+        401: {
+          description: "Unauthorized",
+        },
+        403: {
+          description: "Access denied, missing required role",
+          content: {
+            "text/plain": {
+              example: "Access denied, missing required role.",
+            },
           },
         },
-      },
-      422: {
-        description: "Validation error",
-        content: {
-          "text/plain": {
-            example: `Schema validation failed: "property name" must be a "type".`,
+        404: {
+          description: "Secret not found",
+          content: {
+            "text/plain": {
+              example: `Secret "secretname" was not found.`,
+            },
           },
         },
-      },
-      500: {
-        description: "Internal server error",
+        422: {
+          description: "Validation error",
+          content: {
+            "text/plain": {
+              example: `Schema validation failed: "property name" must be a "type".`,
+            },
+          },
+        },
+        500: {
+          description: "Internal server error",
+        },
       },
     },
-  },
-});
+  }),
+};

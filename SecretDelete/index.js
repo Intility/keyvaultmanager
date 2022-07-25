@@ -83,84 +83,87 @@ const httpTrigger = async function (context, req) {
   }
 };
 
-module.exports = mapOpenApi3(httpTrigger, "/secret/{name}", {
-  delete: {
-    tags: ["secret"],
-    summary: "Delete secret from key vault",
-    description: "",
-    parameters: [
-      {
-        name: "name",
-        in: "path",
-        required: true,
-        description: "Secret name",
-        schema: {
-          type: "string",
+module.exports = {
+  httpTrigger,
+  run: mapOpenApi3(httpTrigger, "/secret/{name}", {
+    delete: {
+      tags: ["secret"],
+      summary: "Delete secret from key vault",
+      description: "",
+      parameters: [
+        {
+          name: "name",
+          in: "path",
+          required: true,
+          description: "Secret name",
+          schema: {
+            type: "string",
+          },
         },
-      },
-    ],
-    responses: {
-      200: {
-        description: "Returns deleted secret",
-        content: {
-          "application/json": {
-            example: {
-              name: "ThisIsTheSecret",
-              properties: {
-                expiresOn: "2022-02-01T12:00:00.000Z",
-                createdOn: "2022-01-01T12:00:00.000Z",
-                updatedOn: "2022-02-02T12:00:00.000Z",
-                enabled: true,
-                notBefore: "2022-01-01T12:00:00.000Z",
-                recoverableDays: 90,
-                recoveryLevel: "Recoverable",
-                id: "https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8",
-                contentType: "test",
-                tags: {
-                  managed: "true",
-                  autoRotate: "false",
-                  ownerUri: "https://secret.owned.here",
-                  metadataUrl:
-                    "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
-                },
-                vaultUrl: "https://keyvaultname.vault.azure.net",
-                version: "44afcd5415474a0e9ff13878c3c16fb8",
+      ],
+      responses: {
+        200: {
+          description: "Returns deleted secret",
+          content: {
+            "application/json": {
+              example: {
                 name: "ThisIsTheSecret",
+                properties: {
+                  expiresOn: "2022-02-01T12:00:00.000Z",
+                  createdOn: "2022-01-01T12:00:00.000Z",
+                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  enabled: true,
+                  notBefore: "2022-01-01T12:00:00.000Z",
+                  recoverableDays: 90,
+                  recoveryLevel: "Recoverable",
+                  id: "https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8",
+                  contentType: "test",
+                  tags: {
+                    managed: "true",
+                    autoRotate: "false",
+                    ownerUri: "https://secret.owned.here",
+                    metadataUrl:
+                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                  },
+                  vaultUrl: "https://keyvaultname.vault.azure.net",
+                  version: "44afcd5415474a0e9ff13878c3c16fb8",
+                  name: "ThisIsTheSecret",
+                  recoveryId:
+                    "https://keyvaultname.vault.azure.net/deletedsecrets/ThisIsTheSecret",
+                  scheduledPurgeDate: "2022-06-01T12:00:00.000Z",
+                  deletedOn: "2022-03-03T12:00:00.000Z",
+                },
                 recoveryId:
                   "https://keyvaultname.vault.azure.net/deletedsecrets/ThisIsTheSecret",
                 scheduledPurgeDate: "2022-06-01T12:00:00.000Z",
                 deletedOn: "2022-03-03T12:00:00.000Z",
               },
-              recoveryId:
-                "https://keyvaultname.vault.azure.net/deletedsecrets/ThisIsTheSecret",
-              scheduledPurgeDate: "2022-06-01T12:00:00.000Z",
-              deletedOn: "2022-03-03T12:00:00.000Z",
             },
           },
         },
-      },
-      401: {
-        description: "Unauthorized",
-      },
-      403: {
-        description: "Access denied, missing required role",
-        content: {
-          "text/plain": {
-            example: "Access denied, missing required role.",
+        401: {
+          description: "Unauthorized",
+        },
+        403: {
+          description: "Access denied, missing required role",
+          content: {
+            "text/plain": {
+              example: "Access denied, missing required role.",
+            },
           },
         },
-      },
-      404: {
-        description: "Secret not found",
-        content: {
-          "text/plain": {
-            example: `Secret "secretname" was not found.`,
+        404: {
+          description: "Secret not found",
+          content: {
+            "text/plain": {
+              example: `Secret "secretname" was not found.`,
+            },
           },
         },
-      },
-      500: {
-        description: "Internal server error",
+        500: {
+          description: "Internal server error",
+        },
       },
     },
-  },
-});
+  }),
+};
