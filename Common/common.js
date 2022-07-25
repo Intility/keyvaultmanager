@@ -79,11 +79,10 @@ module.exports = class common {
   }
 
   // convert tags to string
-  convertTags(myObj) {
-    Object.keys(myObj).forEach(function (key) {
-      typeof myObj[key] === "object"
-        ? replace(myObj[key])
-        : (myObj[key] = String(myObj[key]));
-    });
-  }
+  convertTags = (tags) =>
+    Object.keys(tags).forEach((key) =>
+      typeof tags[key] === "object"
+        ? this.convertTags(tags[key])
+        : (tags[key] = String(tags[key]))
+    );
 };
