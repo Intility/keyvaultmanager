@@ -18,9 +18,9 @@ const httpTrigger = async function (context, req) {
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
       );
     }
-    return {
+    return (context.res = {
       status: error.message || 500,
-    };
+    });
   }
 
   try {
@@ -39,10 +39,10 @@ const httpTrigger = async function (context, req) {
     delete metadata["rowKey"];
     delete metadata["timestamp"];
 
-    context.res = {
+    return (context.res = {
       status: 200,
       body: metadata,
-    };
+    });
   } catch (error) {
     await utils.captureException(error);
     if (
@@ -51,16 +51,16 @@ const httpTrigger = async function (context, req) {
         .includes("azsdk-js-keyvault-secrets")
     ) {
       if (error.statusCode === 403) {
-        return {
+        return (context.res = {
           status: 403,
           body: `Access denied, key vault manager does not have access to the key vault.`,
-        };
+        });
       }
       if (error.statusCode === 404) {
-        return {
+        return (context.res = {
           status: 404,
           body: `Secret "${req.params.name}" was not found.`,
-        };
+        });
       }
     }
 
@@ -68,25 +68,25 @@ const httpTrigger = async function (context, req) {
       error.request.headers.get("user-agent").includes("azsdk-js-data-tables")
     ) {
       if (error.statusCode === 403) {
-        return {
+        return (context.res = {
           status: 403,
           body: `Access denied, key vault manager does not have access to the table storage.`,
-        };
+        });
       }
       if (error.statusCode === 404) {
-        return {
+        return (context.res = {
           status: 404,
           body: `Metadata for secret "${req.params.name}" was not found.`,
-        };
+        });
       }
     }
 
     context.log.error(
       `InvocationId: ${context.invocationId}, Error: ${error.message}`
     );
-    context.res = {
+    return (context.res = {
       status: 500,
-    };
+    });
   }
 };
 

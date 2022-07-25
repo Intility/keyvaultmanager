@@ -20,45 +20,45 @@ const httpTrigger = async function (context, req) {
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
       );
     }
-    return {
+    return (context.res = {
       status: error.message || 500,
-    };
+    });
   }
 
   try {
     // get Secret
     const secret = await secretClient.getSecret(req.body.name);
     if (secret.name === req.body.name) {
-      return {
+      return (context.res = {
         status: 409,
         body: `Secret "${req.body.name}" already exists.`,
-      };
+      });
     }
   } catch (error) {
     await utils.captureException(error);
     if (error.statusCode !== 404) {
       if (error.statusCode === 403) {
-        return {
+        return (context.res = {
           status: 403,
           body: `Access denied, key vault manager does not have access to the key vault.`,
-        };
+        });
       }
       context.log.error(
         `InvocationId: ${context.invocationId}, Error: ${error.message}`
       );
-      return {
+      return (context.res = {
         status: 500,
-      };
+      });
     }
   }
 
   // validate the secret options
   const validation = await validate.createSecret(req.body);
   if (validation.error) {
-    return {
+    return (context.res = {
       status: 422,
       body: `Schema validation failed: ${validation.error.message}`,
-    };
+    });
   }
 
   // construct secret options object
@@ -93,10 +93,10 @@ const httpTrigger = async function (context, req) {
 
     secret.metadata = req.body.metadata;
 
-    context.res = {
+    return (context.res = {
       status: 200,
       body: secret,
-    };
+    });
   } catch (error) {
     await utils.captureException(error);
     if (
@@ -105,10 +105,10 @@ const httpTrigger = async function (context, req) {
         .includes("azsdk-js-keyvault-secrets")
     ) {
       if (error.statusCode === 403) {
-        return {
+        return (context.res = {
           status: 403,
           body: `Access denied, key vault manager does not have access to the key vault.`,
-        };
+        });
       }
       if (
         error.message
@@ -117,10 +117,10 @@ const httpTrigger = async function (context, req) {
             "is currently in a deleted but recoverable state, and its name cannot be reused"
           )
       ) {
-        return {
+        return (context.res = {
           status: 409,
           body: `Secret "${req.body.name}" already exists. It is in a deleted state but can be recovered or purged.`,
-        };
+        });
       }
     }
 
@@ -128,19 +128,19 @@ const httpTrigger = async function (context, req) {
       error.request.headers.get("user-agent").includes("azsdk-js-data-tables")
     ) {
       if (error.statusCode === 403) {
-        return {
+        return (context.res = {
           status: 403,
           body: `Access denied, key vault manager does not have access to the table storage.`,
-        };
+        });
       }
     }
 
     context.log.error(
       `InvocationId: ${context.invocationId}, Error: ${error.message}`
     );
-    context.res = {
+    return (context.res = {
       status: 500,
-    };
+    });
   }
 };
 

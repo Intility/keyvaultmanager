@@ -16,31 +16,31 @@ const httpTrigger = async function (context, req) {
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
       );
     }
-    return {
+    return (context.res = {
       status: error.message || 500,
-    };
+    });
   }
 
   try {
     const secrets = await secretClient.getSecrets();
-    context.res = {
+    return (context.res = {
       status: 200,
       body: secrets,
-    };
+    });
   } catch (error) {
     await utils.captureException(error);
     if (error.statusCode === 403) {
-      return {
+      return (context.res = {
         status: 403,
         body: `Access denied, key vault manager does not have access to the key vault.`,
-      };
+      });
     }
     context.log.error(
       `InvocationId: ${context.invocationId}, Error: ${error.message}`
     );
-    context.res = {
+    return (context.res = {
       status: 500,
-    };
+    });
   }
 };
 
