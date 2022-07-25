@@ -1,7 +1,10 @@
+const axios = require("axios");
+const twilio = require("twilio");
+const sgMail = require("@sendgrid/mail");
+
 const title = "Key vault manager";
 
 async function msTeams(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
-  const axios = require("axios");
   const url = process.env.teamsWebhookUrl;
   const body = {
     type: "message",
@@ -55,7 +58,6 @@ async function msTeams(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
 }
 
 async function slack(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
-  const axios = require("axios");
   const url = process.env.slackWebhookUrl;
   const body = {
     blocks: [
@@ -107,7 +109,7 @@ async function slack(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
 }
 
 async function sms(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
-  const twilio = require("twilio")(
+  const smsClient = new twilio(
     process.env.twilioAccountSid,
     process.env.twilioAuthToken
   );
@@ -117,7 +119,7 @@ async function sms(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
     to: process.env.twilioToNumber,
   };
   try {
-    await twilio.messages.create(msg);
+    await smsClient.messages.create(msg);
     return true;
   } catch (error) {
     console.error(`sms error: ${error}`);
@@ -126,7 +128,6 @@ async function sms(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
 }
 
 async function email(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
-  const sgMail = require("@sendgrid/mail");
   sgMail.setApiKey(process.env.sendgridApiKey);
   const msg = {
     to: process.env.sendgridToAddress,
