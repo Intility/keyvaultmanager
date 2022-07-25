@@ -146,9 +146,9 @@ const httpTrigger = async function (context, req) {
 
 module.exports = {
   httpTrigger,
-  run: mapOpenApi3(httpTrigger, "/secret", {
+  run: mapOpenApi3(httpTrigger, "/secrets", {
     post: {
-      tags: ["secret"],
+      tags: ["secrets"],
       summary: "Add secret to key vault",
       description: "",
       requestBody: {

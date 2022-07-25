@@ -92,9 +92,9 @@ const httpTrigger = async function (context, req) {
 
 module.exports = {
   httpTrigger,
-  run: mapOpenApi3(httpTrigger, "/secret/{name}/metadata", {
+  run: mapOpenApi3(httpTrigger, "/secrets/{name}/metadata", {
     get: {
-      tags: ["secret"],
+      tags: ["secrets"],
       summary: "Get secret metadata",
       description: "",
       parameters: [

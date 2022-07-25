@@ -8,7 +8,7 @@
       "methods": [
         "get"
       ],
-      "route": "secret"
+      "route": "secrets"
     },
     {
       "type": "http",
