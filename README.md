@@ -25,7 +25,7 @@ The Function App has access restrictions so you will only reach it from the whit
 
 ### API access
 
-To configure access to the Key vault manager API you have to assign the reader or writer role. From the Azure portal navigate to Azure Active Directory, Enterprise applications, "keyvaultmanager-{id}". Click Users and groups blade, Add user/group and select users/groups and role KeyVaultManagerReader or KeyVaultManagerWriter as required.\
+To configure access to the Key vault manager API you have to assign the reader or writer role. From the Azure portal navigate to Azure Active Directory, Enterprise applications, "keyvaultmanager-{id}". Click Users and groups blade, Add user/group and select users/groups and role KeyVaultManagerReader or KeyVaultManagerWriter as required.
 
 ### Alert channels
 

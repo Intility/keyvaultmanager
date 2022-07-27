@@ -1,7 +1,7 @@
-const secreter = require("../Common/secret");
-const alerter = require("../Common/alert");
-const validator = require("../Common/validate");
-const common = require("../Common/common");
+const secreter = require('../Common/secret');
+const alerter = require('../Common/alert');
+const validator = require('../Common/validate');
+const common = require('../Common/common');
 
 const secretClient = new secreter();
 const alert = new alerter();
@@ -11,12 +11,12 @@ const utils = new common();
 module.exports = async function (context, eventGridEvent) {
   const keyVaultUrl = process.env.keyVaultUrl;
   const keyVaultName = keyVaultUrl
-    .split("https://")[1]
-    .split(".vault.azure.net/")[0];
+    .split('https://')[1]
+    .split('.vault.azure.net/')[0];
   if (
     eventGridEvent.topic === process.env.eventGridTopic &&
     eventGridEvent.data.VaultName === keyVaultName &&
-    eventGridEvent.data.ObjectType === "Secret"
+    eventGridEvent.data.ObjectType === 'Secret'
   ) {
     const secretName = eventGridEvent.data.ObjectName;
 
@@ -26,12 +26,12 @@ module.exports = async function (context, eventGridEvent) {
       // secret is enabled and managed
       if (
         secret.properties.enabled &&
-        secret.properties.tags.managed === "true"
+        secret.properties.tags.managed === 'true'
       ) {
         let facts;
         let whatToDo;
         switch (eventGridEvent.eventType) {
-          case "Microsoft.KeyVault.SecretNewVersionCreated":
+          case 'Microsoft.KeyVault.SecretNewVersionCreated':
             // Validate the secret
             const validation = await validate.keyVaultSecret(secret);
             // send validation error alert
@@ -45,10 +45,10 @@ module.exports = async function (context, eventGridEvent) {
               secret.properties.id
             );
             break;
-          case "Microsoft.KeyVault.SecretNearExpiry":
-            if (secret.properties.tags.autoRotate === "true") {
+          case 'Microsoft.KeyVault.SecretNearExpiry':
+            if (secret.properties.tags.autoRotate === 'true') {
               // TODO rotate secret automatically
-              context.log("Auto rotate is a future feature");
+              context.log('Auto rotate is a future feature');
             } else {
               // send alert for manual handling
               facts = `Secret expires: ${secret.properties.expiresOn}`;
@@ -62,7 +62,7 @@ module.exports = async function (context, eventGridEvent) {
               );
             }
             break;
-          case "Microsoft.KeyVault.SecretExpired":
+          case 'Microsoft.KeyVault.SecretExpired':
             // alert (renew yesterday or disable or remove unused secret)
             facts = `Secret has expired: ${secret.properties.expiresOn} (UTC)`;
             whatToDo = `Rotate secret immediately if its still in use! Rotate, add new verstion to key vault and "load" new version wherever its used. Disable or remove if secret is no longer in use.`;
@@ -75,7 +75,7 @@ module.exports = async function (context, eventGridEvent) {
             );
             break;
           default:
-            context.log("Not a relevant key vault event type.");
+            context.log('Not a relevant key vault event type.');
             context.log(`Event: ${JSON.stringify(eventGridEvent, null, 2)}`);
         }
       } else {

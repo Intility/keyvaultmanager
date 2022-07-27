@@ -1,8 +1,10 @@
-const { generateOpenApi3Spec } = require("@aaronpowell/azure-functions-nodejs-openapi");
+const {
+  generateOpenApi3Spec,
+} = require('@aaronpowell/azure-functions-nodejs-openapi');
 
 module.exports = generateOpenApi3Spec({
   info: {
-    title: "Key vault manager api",
-    version: "0.0.1"
-  }
+    title: 'Key vault manager api',
+    version: '0.0.1',
+  },
 });

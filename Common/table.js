@@ -1,21 +1,21 @@
 const {
   useIdentityPlugin,
   DefaultAzureCredential,
-} = require("@azure/identity");
-const { vsCodePlugin } = require("@azure/identity-vscode");
-const { TableClient } = require("@azure/data-tables");
+} = require('@azure/identity');
+const { vsCodePlugin } = require('@azure/identity-vscode');
+const { TableClient } = require('@azure/data-tables');
 
-if ([true, "true"].includes(process.env.localDev)) {
+if ([true, 'true'].includes(process.env.localDev)) {
   // Local dev auth: ADFS not currently supported, using sp creds for now
   useIdentityPlugin(vsCodePlugin);
-  console.log("Using local credentials for table auth");
+  console.log('Using local credentials for table auth');
 }
 
-const tableName = "keyVaultAssetMetadata";
+const tableName = 'keyVaultAssetMetadata';
 
 let client;
 
-if ([true, "true"].includes(process.env.localDev)) {
+if ([true, 'true'].includes(process.env.localDev)) {
   // depends on azurite to emulate table storage locally
   client = TableClient.fromConnectionString(
     process.env.AzureWebJobsStorage,
@@ -27,8 +27,8 @@ if ([true, "true"].includes(process.env.localDev)) {
   // get storage account name and create the url
   const storageAccountString = process.env.AzureWebJobsStorage;
   const storageAccountName = storageAccountString
-    .split("DefaultEndpointsProtocol=https;AccountName=")[1]
-    .split(";AccountKey=")[0];
+    .split('DefaultEndpointsProtocol=https;AccountName=')[1]
+    .split(';AccountKey=')[0];
   const url = `https://${storageAccountName}.table.core.windows.net`;
 
   client = new TableClient(url, tableName, credential);

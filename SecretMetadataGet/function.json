@@ -8,7 +8,7 @@
       "methods": [
         "get"
       ],
-      "route": "secret/{name}/metadata"
+      "route": "secrets/{name}/metadata"
     },
     {
       "type": "http",
