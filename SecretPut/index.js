@@ -1,8 +1,8 @@
-const { mapOpenApi3 } = require("@aaronpowell/azure-functions-nodejs-openapi");
-const common = require("../Common/common");
-const secreter = require("../Common/secret");
-const validator = require("../Common/validate");
-const table = require("../Common/table");
+const { mapOpenApi3 } = require('@aaronpowell/azure-functions-nodejs-openapi');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const validator = require('../Common/validate');
+const table = require('../Common/table');
 
 const utils = new common();
 const secretClient = new secreter();
@@ -10,9 +10,9 @@ const validate = new validator();
 const tableClient = new table();
 
 const httpTrigger = async function (context, req) {
-  const principalObect = req.headers["x-ms-client-principal"];
+  const principalObect = req.headers['x-ms-client-principal'];
   try {
-    utils.authorize(principalObect, "Writer");
+    utils.authorize(principalObect, 'Writer');
   } catch (error) {
     await utils.captureException(error);
     if (!error.status) {
@@ -33,8 +33,8 @@ const httpTrigger = async function (context, req) {
     await utils.captureException(error);
     if (
       error.request.headers
-        .get("user-agent")
-        .includes("azsdk-js-keyvault-secrets")
+        .get('user-agent')
+        .includes('azsdk-js-keyvault-secrets')
     ) {
       if (error.statusCode === 403) {
         return (context.res = {
@@ -89,7 +89,7 @@ const httpTrigger = async function (context, req) {
     ...newSecretOptions,
   };
   if (!updatedSecretOptions.tags.metadataUrl) {
-    updatedSecretOptions.tags.metadataUrl = req.url + "/metadata";
+    updatedSecretOptions.tags.metadataUrl = req.url + '/metadata';
   }
 
   utils.convertTags(updatedSecretOptions.tags);
@@ -105,17 +105,17 @@ const httpTrigger = async function (context, req) {
     );
 
     // get existing secret metadata
-    const partitionKey = "secret";
+    const partitionKey = 'secret';
     const vaultUrl =
-      existingSecret.properties.vaultUrl + "/secrets/" + existingSecret.name;
-    const rowKey = vaultUrl.replace(/\//g, "_");
+      existingSecret.properties.vaultUrl + '/secrets/' + existingSecret.name;
+    const rowKey = vaultUrl.replace(/\//g, '_');
     const metadata = await tableClient.getEntity(partitionKey, rowKey);
     const existingMetadata = { ...metadata };
-    delete existingMetadata["odata.metadata"];
-    delete existingMetadata["etag"];
-    delete existingMetadata["partitionKey"];
-    delete existingMetadata["rowKey"];
-    delete existingMetadata["timestamp"];
+    delete existingMetadata['odata.metadata'];
+    delete existingMetadata['etag'];
+    delete existingMetadata['partitionKey'];
+    delete existingMetadata['rowKey'];
+    delete existingMetadata['timestamp'];
 
     // updated metadata object
     const newMetadata = { ...req.body.metadata };
@@ -126,7 +126,7 @@ const httpTrigger = async function (context, req) {
 
     const updatedMetadataEntries = Object.entries(mergedMetadata).filter(
       ([_key, value]) => {
-        const nullValues = [null, undefined, ""];
+        const nullValues = [null, undefined, ''];
         return !nullValues.includes(value);
       }
     );
@@ -137,7 +137,7 @@ const httpTrigger = async function (context, req) {
       partitionKey,
       rowKey,
       updatedMetadata,
-      "Replace"
+      'Replace'
     );
 
     secret.metadata = updatedMetadata;
@@ -150,8 +150,8 @@ const httpTrigger = async function (context, req) {
     await utils.captureException(error);
     if (
       error.request.headers
-        .get("user-agent")
-        .includes("azsdk-js-keyvault-secrets")
+        .get('user-agent')
+        .includes('azsdk-js-keyvault-secrets')
     ) {
       if (error.statusCode === 403) {
         return (context.res = {
@@ -162,7 +162,7 @@ const httpTrigger = async function (context, req) {
     }
 
     if (
-      error.request.headers.get("user-agent").includes("azsdk-js-data-tables")
+      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
     ) {
       if (error.statusCode === 403) {
         return (context.res = {
@@ -176,7 +176,7 @@ const httpTrigger = async function (context, req) {
           partitionKey,
           rowKey,
           req.body.metadata,
-          "Replace"
+          'Replace'
         );
         secret.metadata = req.body.metadata;
 
@@ -197,74 +197,74 @@ const httpTrigger = async function (context, req) {
 
 module.exports = {
   httpTrigger,
-  run: mapOpenApi3(httpTrigger, "/secrets/{name}", {
+  run: mapOpenApi3(httpTrigger, '/secrets/{name}', {
     put: {
-      tags: ["secrets"],
-      summary: "Add new secret version and update tags/metadata in key vault",
-      description: "",
+      tags: ['secrets'],
+      summary: 'Add new secret version and update tags/metadata in key vault',
+      description: '',
       parameters: [
         {
-          name: "name",
-          in: "path",
+          name: 'name',
+          in: 'path',
           required: true,
-          description: "Secret name",
+          description: 'Secret name',
           schema: {
-            type: "string",
+            type: 'string',
           },
         },
       ],
       requestBody: {
-        description: "The new secret value and any updated tags/metadata",
+        description: 'The new secret value and any updated tags/metadata',
         content: {
-          "application/json": {
+          'application/json': {
             schema: {
-              type: "object",
+              type: 'object',
               properties: {
                 value: {
-                  description: "New secret value",
-                  type: "string",
+                  description: 'New secret value',
+                  type: 'string',
                 },
                 enabled: {
-                  description: "Secret state",
-                  type: "boolean",
+                  description: 'Secret state',
+                  type: 'boolean',
                 },
                 contentType: {
-                  description: "Secret content type",
-                  type: "string",
+                  description: 'Secret content type',
+                  type: 'string',
                 },
                 notBefore: {
-                  description: "Secret valid from",
-                  type: "string",
+                  description: 'Secret valid from',
+                  type: 'string',
                 },
                 expiresOn: {
-                  description: "Secret valid to",
-                  type: "string",
+                  description: 'Secret valid to',
+                  type: 'string',
                 },
                 tags: {
-                  description: "Secret tags",
-                  type: "object",
+                  description: 'Secret tags',
+                  type: 'object',
                   properties: {
                     managed: {
-                      description: "If secret is managed",
-                      type: "boolean",
+                      description: 'If secret is managed',
+                      type: 'boolean',
                     },
                     autoRotate: {
-                      description: "If secret is auto rotated",
-                      type: "boolean",
+                      description: 'If secret is auto rotated',
+                      type: 'boolean',
                     },
                     owner: {
-                      description: "Secret owner resource URI",
-                      type: "string",
+                      description: 'Secret owner resource URI',
+                      type: 'string',
                     },
                   },
                 },
                 metadata: {
-                  description: "Secret tags",
-                  type: "object",
+                  description: 'Secret tags',
+                  type: 'object',
                   properties: {
                     consumer1: {
-                      description: "Uri for consumer 1 of the secret",
-                      type: "string",
+                      description: 'Uri for consumer 1 of the secret',
+                      type: 'string',
                     },
                   },
                 },
@@ -275,34 +275,34 @@ module.exports = {
       },
       responses: {
         200: {
-          description: "Returns new secret version",
+          description: 'Returns new secret version',
           content: {
-            "application/json": {
+            'application/json': {
               example: {
-                value: "realyTopSecret123!",
-                name: "ThisIsTheSecret",
+                value: 'realyTopSecret123!',
+                name: 'ThisIsTheSecret',
                 properties: {
-                  expiresOn: "2022-02-01T12:00:00.000Z",
-                  createdOn: "2022-01-01T12:00:00.000Z",
-                  updatedOn: "2022-02-02T12:00:00.000Z",
+                  expiresOn: '2022-02-01T12:00:00.000Z',
+                  createdOn: '2022-01-01T12:00:00.000Z',
+                  updatedOn: '2022-02-02T12:00:00.000Z',
                   enabled: true,
-                  notBefore: "2022-01-01T12:00:00.000Z",
+                  notBefore: '2022-01-01T12:00:00.000Z',
                   recoverableDays: 90,
-                  recoveryLevel: "Recoverable",
-                  id: "https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8",
-                  contentType: "test",
+                  recoveryLevel: 'Recoverable',
+                  id: 'https://keyvaultname.vault.azure.net/secrets/ThisIsTheSecret/44afcd5415474a0e9ff13878c3c16fb8',
+                  contentType: 'test',
                   tags: {
-                    managed: "true",
-                    autoRotate: "false",
-                    ownerUri: "https://secret.owned.here",
+                    managed: 'true',
+                    autoRotate: 'false',
+                    ownerUri: 'https://secret.owned.here',
                     metadataUrl:
-                      "https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata",
+                      'https://func-kvmgmt-{id}.azurewebsites.net/api/secret/thisisthesecret/metadata',
                   },
-                  vaultUrl: "https://keyvaultname.vault.azure.net",
-                  version: "44afcd5415474a0e9ff13878c3c16fb8",
-                  name: "ThisIsTheSecret",
+                  vaultUrl: 'https://keyvaultname.vault.azure.net',
+                  version: '44afcd5415474a0e9ff13878c3c16fb8',
+                  name: 'ThisIsTheSecret',
                   metadata: {
-                    consumer1: "https://secret.used.here",
+                    consumer1: 'https://secret.used.here',
                   },
                 },
               },
@@ -310,34 +310,34 @@ module.exports = {
           },
         },
         401: {
-          description: "Unauthorized",
+          description: 'Unauthorized',
         },
         403: {
-          description: "Access denied, missing required role",
+          description: 'Access denied, missing required role',
           content: {
-            "text/plain": {
-              example: "Access denied, missing required role.",
+            'text/plain': {
+              example: 'Access denied, missing required role.',
             },
           },
         },
         404: {
-          description: "Secret not found",
+          description: 'Secret not found',
           content: {
-            "text/plain": {
+            'text/plain': {
               example: `Secret "secretname" was not found.`,
             },
           },
         },
         422: {
-          description: "Validation error",
+          description: 'Validation error',
           content: {
-            "text/plain": {
+            'text/plain': {
               example: `Schema validation failed: "property name" must be a "type".`,
             },
           },
         },
         500: {
-          description: "Internal server error",
+          description: 'Internal server error',
         },
       },
     },

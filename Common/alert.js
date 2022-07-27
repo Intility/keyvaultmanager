@@ -1,46 +1,46 @@
-const axios = require("axios");
-const twilio = require("twilio");
-const sgMail = require("@sendgrid/mail");
+const axios = require('axios');
+const twilio = require('twilio');
+const sgMail = require('@sendgrid/mail');
 
-const title = "Key vault manager";
+const title = 'Key vault manager';
 
 async function msTeams(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
   const url = process.env.teamsWebhookUrl;
   const body = {
-    type: "message",
+    type: 'message',
     attachments: [
       {
-        contentType: "application/vnd.microsoft.card.adaptive",
+        contentType: 'application/vnd.microsoft.card.adaptive',
         content: {
-          type: "AdaptiveCard",
-          $schema: "https://adaptivecards.io/schemas/adaptive-card.json",
-          version: "1.5",
+          type: 'AdaptiveCard',
+          $schema: 'https://adaptivecards.io/schemas/adaptive-card.json',
+          version: '1.5',
           msteams: {
-            width: "Full",
+            width: 'Full',
           },
           body: [
             {
-              type: "TextBlock",
-              size: "Medium",
-              weight: "Bolder",
+              type: 'TextBlock',
+              size: 'Medium',
+              weight: 'Bolder',
               text: `${title}`,
             },
             {
-              type: "TextBlock",
+              type: 'TextBlock',
               text: `${title} detected the following for key vault ${keyVaultName} secret ${secretName}`,
             },
             {
-              type: "TextBlock",
+              type: 'TextBlock',
               text: `Facts: ${facts}`,
               wrap: true,
             },
             {
-              type: "TextBlock",
+              type: 'TextBlock',
               text: `What to do: ${whatToDo}`,
               wrap: true,
             },
             {
-              type: "TextBlock",
+              type: 'TextBlock',
               text: `Url: [${kvAssetUrl}](${kvAssetUrl})`,
             },
           ],
@@ -50,7 +50,7 @@ async function msTeams(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
   };
 
   try {
-    return axios.post(url, body);
+    return await axios.post(url, body);
   } catch (error) {
     console.error(`teams error: ${error}`);
     throw error;
@@ -62,38 +62,38 @@ async function slack(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
   const body = {
     blocks: [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
+          type: 'plain_text',
           text: `${title}`,
           emoji: true,
         },
       },
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `${title} detected the following for key vault ${keyVaultName} secret ${secretName}`,
         },
       },
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `Facts: ${facts}`,
         },
       },
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `What to do: ${whatToDo}`,
         },
       },
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
+          type: 'mrkdwn',
           text: `Url: ${kvAssetUrl}`,
         },
       },
@@ -101,7 +101,7 @@ async function slack(keyVaultName, secretName, facts, whatToDo, kvAssetUrl) {
   };
 
   try {
-    return axios.post(url, body);
+    return await axios.post(url, body);
   } catch (error) {
     console.error(`slack error: ${error}`);
     throw error;

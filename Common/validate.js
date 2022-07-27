@@ -1,4 +1,4 @@
-const Joi = require("joi").extend(require("@joi/date"));
+const Joi = require('joi').extend(require('@joi/date'));
 
 module.exports = class validator {
   async keyVaultSecret(secret) {

@@ -1,17 +1,17 @@
 const {
   useIdentityPlugin,
   DefaultAzureCredential,
-} = require("@azure/identity");
-const { vsCodePlugin } = require("@azure/identity-vscode");
-const { SecretClient } = require("@azure/keyvault-secrets");
-const validator = require("../Common/validate");
+} = require('@azure/identity');
+const { vsCodePlugin } = require('@azure/identity-vscode');
+const { SecretClient } = require('@azure/keyvault-secrets');
+const validator = require('../Common/validate');
 
 const validate = new validator();
 
-if ([true, "true"].includes(process.env.localDev)) {
+if ([true, 'true'].includes(process.env.localDev)) {
   // Local dev auth: ADFS not currently supported, using sp creds for now
   useIdentityPlugin(vsCodePlugin);
-  console.log("Using local credentials for key vault auth");
+  console.log('Using local credentials for key vault auth');
 }
 
 // DefaultAzureCredential

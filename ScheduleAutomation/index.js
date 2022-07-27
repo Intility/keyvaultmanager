@@ -1,7 +1,7 @@
-const common = require("../Common/common");
-const secreter = require("../Common/secret");
-const alerter = require("../Common/alert");
-const validator = require("../Common/validate");
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const alerter = require('../Common/alert');
+const validator = require('../Common/validate');
 
 const utils = new common();
 const secretClient = new secreter();
@@ -17,11 +17,11 @@ module.exports = async function (context, _myTimer) {
       const validation = await validate.keyVaultSecret(secret);
       const keyVaultUrl = secret.vaultUrl;
       const keyVaultName = keyVaultUrl
-        .split("https://")[1]
-        .split(".vault.azure.net")[0];
+        .split('https://')[1]
+        .split('.vault.azure.net')[0];
       if (validation.error) {
         const facts = `Failed validation: ${validation.error.message}`;
-        const whatToDo = "Add or update tags and stuff";
+        const whatToDo = 'Add or update tags and stuff';
         await alert.send(keyVaultName, secret.name, facts, whatToDo, secret.id);
       }
       // validate secret expiration

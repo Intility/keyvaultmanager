@@ -1,16 +1,16 @@
-const { mapOpenApi3 } = require("@aaronpowell/azure-functions-nodejs-openapi");
-const common = require("../Common/common");
-const secreter = require("../Common/secret");
-const table = require("../Common/table");
+const { mapOpenApi3 } = require('@aaronpowell/azure-functions-nodejs-openapi');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const table = require('../Common/table');
 
 const utils = new common();
 const secretClient = new secreter();
 const tableClient = new table();
 
 const httpTrigger = async function (context, req) {
-  const principalObect = req.headers["x-ms-client-principal"];
+  const principalObect = req.headers['x-ms-client-principal'];
   try {
-    utils.authorize(principalObect, "Reader");
+    utils.authorize(principalObect, 'Reader');
   } catch (error) {
     await utils.captureException(error);
     if (!error.status) {
@@ -28,16 +28,16 @@ const httpTrigger = async function (context, req) {
     const secret = await secretClient.getSecret(req.params.name);
 
     // get secret metadata entity
-    const partitionKey = "secret";
-    const vaultUrl = secret.properties.vaultUrl + "/secrets/" + secret.name;
-    const rowKey = vaultUrl.replace(/\//g, "_");
+    const partitionKey = 'secret';
+    const vaultUrl = secret.properties.vaultUrl + '/secrets/' + secret.name;
+    const rowKey = vaultUrl.replace(/\//g, '_');
     const secretEntity = await tableClient.getEntity(partitionKey, rowKey);
     const metadata = { ...secretEntity };
-    delete metadata["odata.metadata"];
-    delete metadata["etag"];
-    delete metadata["partitionKey"];
-    delete metadata["rowKey"];
-    delete metadata["timestamp"];
+    delete metadata['odata.metadata'];
+    delete metadata['etag'];
+    delete metadata['partitionKey'];
+    delete metadata['rowKey'];
+    delete metadata['timestamp'];
 
     return (context.res = {
       status: 200,
@@ -47,8 +47,8 @@ const httpTrigger = async function (context, req) {
     await utils.captureException(error);
     if (
       error.request.headers
-        .get("user-agent")
-        .includes("azsdk-js-keyvault-secrets")
+        .get('user-agent')
+        .includes('azsdk-js-keyvault-secrets')
     ) {
       if (error.statusCode === 403) {
         return (context.res = {
@@ -65,7 +65,7 @@ const httpTrigger = async function (context, req) {
     }
 
     if (
-      error.request.headers.get("user-agent").includes("azsdk-js-data-tables")
+      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
     ) {
       if (error.statusCode === 403) {
         return (context.res = {
@@ -92,55 +92,55 @@ const httpTrigger = async function (context, req) {
 
 module.exports = {
   httpTrigger,
-  run: mapOpenApi3(httpTrigger, "/secrets/{name}/metadata", {
+  run: mapOpenApi3(httpTrigger, '/secrets/{name}/metadata', {
     get: {
-      tags: ["secrets"],
-      summary: "Get secret metadata",
-      description: "",
+      tags: ['secrets'],
+      summary: 'Get secret metadata',
+      description: '',
       parameters: [
         {
-          name: "name",
-          in: "path",
+          name: 'name',
+          in: 'path',
           required: true,
-          description: "Secret name",
+          description: 'Secret name',
           schema: {
-            type: "string",
+            type: 'string',
           },
         },
       ],
       responses: {
         200: {
-          description: "Returns a secret",
+          description: 'Returns a secret',
           content: {
-            "application/json": {
+            'application/json': {
               example: {
-                consumer1: "https://secret.used.here",
+                consumer1: 'https://secret.used.here',
               },
             },
           },
         },
         401: {
-          description: "Unauthorized",
+          description: 'Unauthorized',
         },
         403: {
-          description: "Access denied, missing required role",
+          description: 'Access denied, missing required role',
           content: {
-            "text/plain": {
+            'text/plain': {
               examples:
-                "Access denied, key vault manager does not have access to the key vault.",
+                'Access denied, key vault manager does not have access to the key vault.',
             },
           },
         },
         404: {
-          description: "Secret not found",
+          description: 'Secret not found',
           content: {
-            "text/plain": {
+            'text/plain': {
               example: `Secret {name} was not found.`,
             },
           },
         },
         500: {
-          description: "Internal server error",
+          description: 'Internal server error',
         },
       },
     },
