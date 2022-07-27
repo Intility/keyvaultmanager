@@ -8,4 +8,7 @@ Dockerfile
 local.settings.json
 .vscode
 .github
+__test__
+__mocks__
+coverage
 ARM
