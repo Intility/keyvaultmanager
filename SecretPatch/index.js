@@ -34,7 +34,7 @@ const httpTrigger = async function (context, req) {
     existingSecret = await secretClient.getSecret(req.params.name);
   } catch (error) {
     await utils.captureException(error);
-    await utils.errorResponse(context, req, error);
+    utils.errorResponse(context, req, error);
   }
 
   // validate the secret options

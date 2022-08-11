@@ -29,7 +29,7 @@ const httpTrigger = async function (context, req) {
     });
   } catch (error) {
     await utils.captureException(error);
-    await utils.errorResponse(context, req, error);
+    utils.errorResponse(context, req, error);
   }
 };
 

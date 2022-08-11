@@ -41,7 +41,7 @@ module.exports = class common {
   }
 
   // error response handler
-  async errorResponse(context, req, error) {
+  errorResponse(context, req, error) {
     if (
       error.request.headers
         .get('user-agent')
