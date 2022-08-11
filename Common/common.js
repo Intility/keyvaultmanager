@@ -40,6 +40,64 @@ module.exports = class common {
     await Sentry.flush(2000);
   }
 
+  // error response handler
+  async errorResponse(context, req, error) {
+    if (
+      error.request.headers
+        .get('user-agent')
+        .includes('azsdk-js-keyvault-secrets')
+    ) {
+      if (error.statusCode === 403) {
+        return (context.res = {
+          status: 403,
+          body: `Access denied, key vault manager does not have access to the key vault.`,
+        });
+      }
+      if (error.statusCode === 404) {
+        return (context.res = {
+          status: 404,
+          body: `Secret "${req.params.name}" was not found.`,
+        });
+      }
+      if (
+        error.message
+          .toLowerCase()
+          .includes(
+            'is currently in a deleted but recoverable state, and its name cannot be reused'
+          )
+      ) {
+        return (context.res = {
+          status: 409,
+          body: `Secret "${req.body.name}" already exists. It is in a deleted state but can be recovered or purged.`,
+        });
+      }
+    }
+
+    if (
+      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
+    ) {
+      if (error.statusCode === 403) {
+        return (context.res = {
+          status: 403,
+          body: `Access denied, key vault manager does not have access to the table storage.`,
+        });
+      }
+      if (error.statusCode === 404) {
+        return (context.res = {
+          status: 404,
+          body: `Metadata for secret "${req.params.name}" was not found.`,
+        });
+      }
+    }
+
+    context.log.error(
+      `InvocationId: ${context.invocationId}, Error: ${error.message}`
+    );
+    return (context.res = {
+      status: 500,
+    });
+  }
+
   // authorization
   authorize(principalObect, accessLevel) {
     if ([true, 'true'].includes(process.env.localDev)) {

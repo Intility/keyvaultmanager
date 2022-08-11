@@ -38,48 +38,7 @@ const httpTrigger = async function (context, req) {
     });
   } catch (error) {
     await utils.captureException(error);
-    if (
-      error.request.headers
-        .get('user-agent')
-        .includes('azsdk-js-keyvault-secrets')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the key vault.`,
-        });
-      }
-      if (error.statusCode === 404) {
-        return (context.res = {
-          status: 404,
-          body: `Secret "${req.params.name}" was not found.`,
-        });
-      }
-    }
-
-    if (
-      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the table storage.`,
-        });
-      }
-      if (error.statusCode === 404) {
-        return (context.res = {
-          status: 404,
-          body: `Metadata for secret "${req.params.name}" was not found.`,
-        });
-      }
-    }
-
-    context.log.error(
-      `InvocationId: ${context.invocationId}, Error: ${error.message}`
-    );
-    return (context.res = {
-      status: 500,
-    });
+    await utils.errorResponse(context, req, error);
   }
 };
 

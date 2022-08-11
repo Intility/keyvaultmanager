@@ -37,18 +37,7 @@ const httpTrigger = async function (context, req) {
   } catch (error) {
     await utils.captureException(error);
     if (error.statusCode !== 404) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the key vault.`,
-        });
-      }
-      context.log.error(
-        `InvocationId: ${context.invocationId}, Error: ${error.message}`
-      );
-      return (context.res = {
-        status: 500,
-      });
+      await utils.errorResponse(context, req, error);
     }
   }
 
@@ -99,48 +88,7 @@ const httpTrigger = async function (context, req) {
     });
   } catch (error) {
     await utils.captureException(error);
-    if (
-      error.request.headers
-        .get('user-agent')
-        .includes('azsdk-js-keyvault-secrets')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the key vault.`,
-        });
-      }
-      if (
-        error.message
-          .toLowerCase()
-          .includes(
-            'is currently in a deleted but recoverable state, and its name cannot be reused'
-          )
-      ) {
-        return (context.res = {
-          status: 409,
-          body: `Secret "${req.body.name}" already exists. It is in a deleted state but can be recovered or purged.`,
-        });
-      }
-    }
-
-    if (
-      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the table storage.`,
-        });
-      }
-    }
-
-    context.log.error(
-      `InvocationId: ${context.invocationId}, Error: ${error.message}`
-    );
-    return (context.res = {
-      status: 500,
-    });
+    await utils.errorResponse(context, req, error);
   }
 };
 

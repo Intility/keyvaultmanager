@@ -29,18 +29,7 @@ const httpTrigger = async function (context, req) {
     });
   } catch (error) {
     await utils.captureException(error);
-    if (error.statusCode === 403) {
-      return (context.res = {
-        status: 403,
-        body: `Access denied, key vault manager does not have access to the key vault.`,
-      });
-    }
-    context.log.error(
-      `InvocationId: ${context.invocationId}, Error: ${error.message}`
-    );
-    return (context.res = {
-      status: 500,
-    });
+    await utils.errorResponse(context, req, error);
   }
 };
 

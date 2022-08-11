@@ -31,30 +31,7 @@ const httpTrigger = async function (context, req) {
     existingSecret = await secretClient.getSecret(req.params.name);
   } catch (error) {
     await utils.captureException(error);
-    if (
-      error.request.headers
-        .get('user-agent')
-        .includes('azsdk-js-keyvault-secrets')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the key vault.`,
-        });
-      }
-      if (error.statusCode === 404) {
-        return (context.res = {
-          status: 404,
-          body: `Secret "${req.params.name}" was not found.`,
-        });
-      }
-    }
-    context.log.error(
-      `InvocationId: ${context.invocationId}, Error: ${error.message}`
-    );
-    return (context.res = {
-      status: 500,
-    });
+    await utils.errorResponse(context, req, error);
   }
 
   // validate the secret options
@@ -151,47 +128,24 @@ const httpTrigger = async function (context, req) {
     if (
       error.request.headers
         .get('user-agent')
-        .includes('azsdk-js-keyvault-secrets')
+        .includes('azsdk-js-data-tables') &&
+      error.statusCode === 404
     ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the key vault.`,
-        });
-      }
-    }
+      // create metadata if not exist
+      await tableClient.upsertEntity(
+        partitionKey,
+        rowKey,
+        req.body.metadata,
+        'Replace'
+      );
+      secret.metadata = req.body.metadata;
 
-    if (
-      error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
-    ) {
-      if (error.statusCode === 403) {
-        return (context.res = {
-          status: 403,
-          body: `Access denied, key vault manager does not have access to the table storage.`,
-        });
-      }
-      if (error.statusCode === 404) {
-        // create metadata if not exist
-        await tableClient.upsertEntity(
-          partitionKey,
-          rowKey,
-          req.body.metadata,
-          'Replace'
-        );
-        secret.metadata = req.body.metadata;
-
-        return (context.res = {
-          status: 200,
-          body: secret,
-        });
-      }
+      return (context.res = {
+        status: 200,
+        body: secret,
+      });
     }
-    context.log.error(
-      `InvocationId: ${context.invocationId}, Error: ${error.message}`
-    );
-    return (context.res = {
-      status: 500,
-    });
+    await utils.errorResponse(context, req, error);
   }
 };
 
