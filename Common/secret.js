@@ -8,6 +8,7 @@ const validator = require('../Common/validate');
 
 const validate = new validator();
 
+/* istanbul ignore next */
 if ([true, 'true'].includes(process.env.localDev)) {
   // Local dev auth: ADFS not currently supported, using sp creds for now
   useIdentityPlugin(vsCodePlugin);

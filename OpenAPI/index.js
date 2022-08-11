@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const {
   generateOpenApi3Spec,
 } = require('@aaronpowell/azure-functions-nodejs-openapi');

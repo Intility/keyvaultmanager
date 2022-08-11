@@ -2,10 +2,12 @@ const { setLogLevel } = require('@azure/logger');
 const Sentry = require('@sentry/node');
 const { name, version } = require('../package.json');
 
+/* istanbul ignore next */
 if ([true, 'true'].includes(process.env.localDev)) {
   console.log(`Authorization is disabled in local dev mode`);
 }
 
+/* istanbul ignore next */
 if (
   [true, 'true'].includes(process.env.localDev) &&
   [true, 'true'].includes(process.env.enableAzureLogger)
@@ -17,6 +19,7 @@ if (
   );
 }
 
+/* istanbul ignore next */
 // initialize sentry for error tracking
 if (process.env.sentryDSN) {
   try {

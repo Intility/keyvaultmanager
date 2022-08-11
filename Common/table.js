@@ -5,6 +5,7 @@ const {
 const { vsCodePlugin } = require('@azure/identity-vscode');
 const { TableClient } = require('@azure/data-tables');
 
+/* istanbul ignore next */
 if ([true, 'true'].includes(process.env.localDev)) {
   // Local dev auth: ADFS not currently supported, using sp creds for now
   useIdentityPlugin(vsCodePlugin);
@@ -15,6 +16,7 @@ const tableName = 'keyVaultAssetMetadata';
 
 let client;
 
+/* istanbul ignore next */
 if ([true, 'true'].includes(process.env.localDev)) {
   // depends on azurite to emulate table storage locally
   client = TableClient.fromConnectionString(
