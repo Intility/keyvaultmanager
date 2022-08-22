@@ -1,6 +1,6 @@
 const { setLogLevel } = require('@azure/logger');
 const Sentry = require('@sentry/node');
-const { name, version } = require('../package.json');
+const { name, version } = require('../../package.json');
 
 /* istanbul ignore next */
 if ([true, 'true'].includes(process.env.localDev)) {

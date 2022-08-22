@@ -150,7 +150,7 @@ const httpTrigger = async function (context, req) {
         body: secret,
       });
     }
-    await utils.errorResponse(context, req, error);
+    utils.errorResponse(context, req, error);
   }
 };
 
