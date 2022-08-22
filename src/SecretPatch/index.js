@@ -52,8 +52,8 @@ const httpTrigger = async function (context, req) {
   const existingSecretOptions = {
     enabled,
     contentType,
-    notBefore: notBefore.toJSON(),
-    expiresOn: expiresOn.toJSON(),
+    notBefore: notBefore?.toJSON(),
+    expiresOn: expiresOn?.toJSON(),
     tags: {
       ...tags,
       managed: tags.managed,
