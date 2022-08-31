@@ -1,5 +1,5 @@
 const Sentry = require('@sentry/node');
-const common = require('../Common/common');
+const common = require('../src/Common/common');
 
 describe('common', () => {
   describe('captureException', () => {
@@ -20,6 +20,112 @@ describe('common', () => {
       expect(captureExceptionSpy).toHaveBeenCalledWith(error);
       expect(sentrycaptureExceptionSpy).toHaveBeenCalledWith(error);
       expect(sentryFlushSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+  describe('errorResponse', () => {
+    let contextObj = {
+      invocationId: '123abc',
+      res: {
+        status: 1,
+        body: 'message',
+      },
+      log: {
+        error: jest.fn(),
+      },
+    };
+    let reqObj = {
+      params: {
+        name: 'secretName',
+      },
+      body: {
+        name: 'secretName',
+      },
+    };
+    let headersMap = new Map();
+    headersMap.set('user-agent', 'azsdk-js-...');
+    let errorObj = {
+      request: {
+        headers: headersMap,
+      },
+      statusCode: 1,
+      message: 'error message',
+    };
+    const mockContextObj = contextObj;
+    const mockReqObj = reqObj;
+    const mockErrorObj = errorObj;
+    beforeEach(() => {
+      contextObj = { ...mockContextObj };
+      reqObj = { ...mockReqObj };
+      errorObj = { ...mockErrorObj };
+    });
+    afterEach(() => {
+      contextObj = mockContextObj;
+      reqObj = mockReqObj;
+      errorObj = mockErrorObj;
+    });
+    it('should return correct error message (azsdk-js-keyvault-secrets - 403)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      errorObj.request.headers.set('user-agent', 'azsdk-js-keyvault-secrets');
+      errorObj.statusCode = 403;
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 403,
+        body: `Access denied, key vault manager does not have access to the key vault.`,
+      });
+    });
+    it('should return correct error message (azsdk-js-keyvault-secrets - 404)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      errorObj.request.headers.set('user-agent', 'azsdk-js-keyvault-secrets');
+      errorObj.statusCode = 404;
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 404,
+        body: `Secret "${reqObj.params.name}" was not found.`,
+      });
+    });
+    it('should return correct error message (azsdk-js-keyvault-secrets - 409)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      errorObj.request.headers.set('user-agent', 'azsdk-js-keyvault-secrets');
+      errorObj.message =
+        'is currently in a deleted but recoverable state, and its name cannot be reused';
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 409,
+        body: `Secret "${reqObj.body.name}" already exists. It is in a deleted state but can be recovered or purged.`,
+      });
+    });
+    it('should return correct error message (azsdk-js-data-tables - 403)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      errorObj.request.headers.set('user-agent', 'azsdk-js-data-tables');
+      errorObj.statusCode = 403;
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 403,
+        body: `Access denied, key vault manager does not have access to the table storage.`,
+      });
+    });
+    it('should return correct error message (azsdk-js-data-tables - 404)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      errorObj.request.headers.set('user-agent', 'azsdk-js-data-tables');
+      errorObj.statusCode = 404;
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 404,
+        body: `Metadata for secret "${reqObj.params.name}" was not found.`,
+      });
+    });
+    it('should return correct error message (default - 500)', () => {
+      const utils = new common();
+      const errorResponseSpy = jest.spyOn(utils, 'errorResponse');
+      utils.errorResponse(contextObj, reqObj, errorObj);
+      expect(errorResponseSpy).toHaveReturnedWith({
+        status: 500,
+      });
     });
   });
   describe('authorize', () => {

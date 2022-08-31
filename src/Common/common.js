@@ -59,6 +59,7 @@ module.exports = class common {
           body: `Secret "${req.params.name}" was not found.`,
         });
       }
+      /* istanbul ignore else */
       if (
         error.message
           .toLowerCase()
@@ -72,7 +73,7 @@ module.exports = class common {
         });
       }
     }
-
+    /* istanbul ignore else */
     if (
       error.request.headers.get('user-agent').includes('azsdk-js-data-tables')
     ) {
@@ -140,10 +141,12 @@ module.exports = class common {
   }
 
   // convert tags to string
-  convertTags = (tags) =>
+  convertTags(tags) {
     Object.keys(tags).forEach((key) =>
       typeof tags[key] === 'object'
         ? this.convertTags(tags[key])
         : (tags[key] = String(tags[key]))
     );
+    return tags;
+  }
 };

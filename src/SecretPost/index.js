@@ -15,6 +15,7 @@ const httpTrigger = async function (context, req) {
     utils.authorize(principalObect, 'Writer');
   } catch (error) {
     await utils.captureException(error);
+    /* istanbul ignore else */
     if (!error.status) {
       context.log.error(
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
@@ -24,10 +25,10 @@ const httpTrigger = async function (context, req) {
       status: error.message || 500,
     });
   }
-
   try {
     // get Secret
     const secret = await secretClient.getSecret(req.body.name);
+    /* istanbul ignore else */
     if (secret.name === req.body.name) {
       return (context.res = {
         status: 409,
@@ -35,12 +36,11 @@ const httpTrigger = async function (context, req) {
       });
     }
   } catch (error) {
-    await utils.captureException(error);
     if (error.statusCode !== 404) {
-      await utils.errorResponse(context, req, error);
+      await utils.captureException(error);
+      return utils.errorResponse(context, req, error);
     }
   }
-
   // validate the secret options
   const validation = await validate.createSecret(req.body);
   if (validation.error) {
@@ -51,7 +51,7 @@ const httpTrigger = async function (context, req) {
   }
 
   // construct secret options object
-  const metadataUrl = req.url + '/metadata';
+  const metadataUrl = req.url + req.body.name + '/metadata';
   const { enabled, contentType, notBefore, expiresOn, tags } = req.body;
   const secretOptions = {
     enabled,

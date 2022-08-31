@@ -15,6 +15,7 @@ const httpTrigger = async function (context, req) {
     utils.authorize(principalObect, 'Writer');
   } catch (error) {
     await utils.captureException(error);
+    /* istanbul ignore else */
     if (!error.status) {
       context.log.error(
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
@@ -31,7 +32,7 @@ const httpTrigger = async function (context, req) {
     existingSecret = await secretClient.getSecret(req.params.name);
   } catch (error) {
     await utils.captureException(error);
-    utils.errorResponse(context, req, error);
+    return utils.errorResponse(context, req, error);
   }
 
   // validate the secret options
@@ -72,6 +73,8 @@ const httpTrigger = async function (context, req) {
   utils.convertTags(updatedSecretOptions.tags);
 
   let secret;
+  let partitionKey;
+  let rowKey;
 
   try {
     // create secret version
@@ -82,10 +85,10 @@ const httpTrigger = async function (context, req) {
     );
 
     // get existing secret metadata
-    const partitionKey = 'secret';
+    partitionKey = 'secret';
     const vaultUrl =
       existingSecret.properties.vaultUrl + '/secrets/' + existingSecret.name;
-    const rowKey = vaultUrl.replace(/\//g, '_');
+    rowKey = vaultUrl.replace(/\//g, '_');
     const metadata = await tableClient.getEntity(partitionKey, rowKey);
     const existingMetadata = { ...metadata };
     delete existingMetadata['odata.metadata'];
@@ -124,7 +127,6 @@ const httpTrigger = async function (context, req) {
       body: secret,
     });
   } catch (error) {
-    await utils.captureException(error);
     if (
       error.request.headers
         .get('user-agent')
@@ -145,7 +147,8 @@ const httpTrigger = async function (context, req) {
         body: secret,
       });
     }
-    await utils.errorResponse(context, req, error);
+    await utils.captureException(error);
+    return utils.errorResponse(context, req, error);
   }
 };
 

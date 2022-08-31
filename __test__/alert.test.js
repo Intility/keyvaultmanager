@@ -1,4 +1,4 @@
-const alerter = require('../Common/alert');
+const alerter = require('../src/Common/alert');
 const axios = require('axios');
 const twilio = require('twilio');
 const sgMail = require('@sendgrid/mail');

@@ -13,6 +13,7 @@ module.exports = async function (context, eventGridEvent) {
   const keyVaultName = keyVaultUrl
     .split('https://')[1]
     .split('.vault.azure.net/')[0];
+  /* istanbul ignore else */
   if (
     eventGridEvent.topic === process.env.eventGridTopic &&
     eventGridEvent.data.VaultName === keyVaultName &&
@@ -24,6 +25,7 @@ module.exports = async function (context, eventGridEvent) {
       // Get the secret
       const secret = await secretClient.getSecret(secretName);
       // secret is enabled and managed
+      /* istanbul ignore else */
       if (
         secret.properties.enabled &&
         secret.properties.tags.managed === 'true'
@@ -36,7 +38,7 @@ module.exports = async function (context, eventGridEvent) {
             const validation = await validate.keyVaultSecret(secret);
             // send validation error alert
             facts = `New secret failed validation: ${validation.error.message}`;
-            whatToDo = `Add or update tags and stuff`;
+            whatToDo = `Add or update specified properties`;
             await alert.send(
               keyVaultName,
               secret.name,
@@ -46,6 +48,7 @@ module.exports = async function (context, eventGridEvent) {
             );
             break;
           case 'Microsoft.KeyVault.SecretNearExpiry':
+            /* istanbul ignore if */
             if (secret.properties.tags.autoRotate === 'true') {
               // TODO rotate secret automatically
               context.log('Auto rotate is a future feature');
@@ -74,9 +77,11 @@ module.exports = async function (context, eventGridEvent) {
               secret.properties.id
             );
             break;
+          /* istanbul ignore next */
           default:
             context.log('Not a relevant key vault event type.');
             context.log(`Event: ${JSON.stringify(eventGridEvent, null, 2)}`);
+            break;
         }
       } else {
         context.log(`This secret is disabled or not enabled for management.`);

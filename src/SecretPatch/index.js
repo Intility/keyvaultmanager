@@ -14,7 +14,12 @@ const httpTrigger = async function (context, req) {
   try {
     utils.authorize(principalObect, 'Writer');
   } catch (error) {
+    console.log(
+      '🚀Jonatan ~ file: index.js ~ line 17 ~ httpTrigger ~ error',
+      error
+    );
     await utils.captureException(error);
+    /* istanbul ignore else */
     if (!error.status) {
       context.log.error(
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
@@ -34,7 +39,7 @@ const httpTrigger = async function (context, req) {
     existingSecret = await secretClient.getSecret(req.params.name);
   } catch (error) {
     await utils.captureException(error);
-    utils.errorResponse(context, req, error);
+    return utils.errorResponse(context, req, error);
   }
 
   // validate the secret options
@@ -129,7 +134,6 @@ const httpTrigger = async function (context, req) {
       body: secret,
     });
   } catch (error) {
-    await utils.captureException(error);
     if (
       error.request.headers
         .get('user-agent')
@@ -150,7 +154,8 @@ const httpTrigger = async function (context, req) {
         body: secret,
       });
     }
-    utils.errorResponse(context, req, error);
+    await utils.captureException(error);
+    return utils.errorResponse(context, req, error);
   }
 };
 

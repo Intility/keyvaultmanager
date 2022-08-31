@@ -11,6 +11,7 @@ const httpTrigger = async function (context, req) {
     utils.authorize(principalObect, 'Reader');
   } catch (error) {
     await utils.captureException(error);
+    /* istanbul ignore else */
     if (!error.status) {
       context.log.error(
         `InvocationId: ${context.invocationId}, Authorization error: ${error}`
@@ -29,7 +30,7 @@ const httpTrigger = async function (context, req) {
     });
   } catch (error) {
     await utils.captureException(error);
-    utils.errorResponse(context, req, error);
+    return utils.errorResponse(context, req, error);
   }
 };
 

@@ -1,4 +1,4 @@
-const validator = require('../Common/validate');
+const validator = require('../src/Common/validate');
 
 describe('validate', () => {
   describe('keyValtSecret', () => {
