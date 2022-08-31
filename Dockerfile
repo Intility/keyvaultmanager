@@ -9,6 +9,8 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
 
 COPY ./src /home/site/wwwroot
+COPY ./package.json /home/site/wwwroot
+COPY ./package-lock.json /home/site/wwwroot
 
 WORKDIR /home/site/wwwroot
 
