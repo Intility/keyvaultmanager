@@ -1,9 +1,11 @@
 {
-  "azureFunctions.deploySubpath": ".",
+  "azureFunctions.projectSubpath": "src",
+  "azureFunctions.deploySubpath": "src",
   "azureFunctions.postDeployTask": "npm install (functions)",
   "azureFunctions.projectLanguage": "JavaScript",
   "azureFunctions.projectRuntime": "~4",
   "debug.internalConsoleOptions": "neverOpen",
   "azureFunctions.preDeployTask": "npm prune (functions)",
-  "azureFunctions.templateFilter": "All"
+  "azureFunctions.templateFilter": "All",
+  "jest.autoRun": "off"
 }
