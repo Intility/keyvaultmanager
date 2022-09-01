@@ -19,7 +19,7 @@ The Function App has access restrictions so you will only reach it from the whit
 ### Deploy resources
 
 1. Sign in to your Azure tenant. Contributor, or owner if you enable delete locks, permission on the resource group is required.
-2. Click the Deploy to Azure button [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FIntility%2Fkeyvaultmanager%2Ftree%2Fmain%2FARM%2Fazuredeploy.json).
+2. Click the Deploy to Azure button [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FIntility%2Fkeyvaultmanager%2Fmain%2FARM%2Fazuredeploy.json).
 3. Fill in the parameters.
 4. Click deploy.
 
