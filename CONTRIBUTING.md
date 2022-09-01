@@ -6,6 +6,8 @@ Thank you for your interest in contributing to key vault manager! There are seve
 
 We are open to all ideas and we want to get rid of bugs! Use the issues section to either report a new issue, provide your ideas or contribute to existing threads.
 
+We use conventional commits with emojis. VS Code extension [here](https://marketplace.visualstudio.com/items?itemName=vivaxy.vscode-conventional-commits)
+
 ## Code
 
 To contribute bug fixes, features, etc:
