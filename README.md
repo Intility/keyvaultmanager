@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/Intility/keyvaultmanager/branch/main/graph/badge.svg?token=2G4WWHOKAK)](https://codecov.io/gh/Intility/keyvaultmanager)
+
 # Key vault manager
 
 Key vault manager is a management tool to keep track of Azure Key Vault assets (like secrets). It validates the assets for necessary properties, keeps track of where they are used, near expiry and expiration and alerts you in your preferred channel (Teams, Slack, email and SMS). The tool is built as an Azure Function App. All required resources are deployed with the ARM template. You can choose if you want to deploy the Function App to an existing App Service Plan or create a new one. You can also choose to manage an existing Key Vault or deploy a new Key Vault.
