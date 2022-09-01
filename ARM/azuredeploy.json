@@ -582,11 +582,11 @@
                     "appSettings": [
                         {
                             "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey]"
+                            "value": "[if(not(empty(parameters('applicationInsightsName'))), reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey, '')]"
                         },
                         {
                             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString]"
+                            "value": "[if(not(empty(parameters('applicationInsightsName'))), reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString, '')]"
                         },
                         {
                             "name": "AzureWebJobsStorage",
@@ -869,8 +869,8 @@
                 "[resourceId('Microsoft.EventGrid/systemTopics/eventSubscriptions', variables('eventTopicName'), variables('eventSubscriptionName'))]"
             ],
             "properties": {
-                "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey]",
-                "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString]",
+                "APPINSIGHTS_INSTRUMENTATIONKEY": "[if(not(empty(parameters('applicationInsightsName'))), reference(variables('applicationInsightsResourceId'), '2020-02-02').instrumentationKey, '')]",
+                "APPLICATIONINSIGHTS_CONNECTION_STRING": "[if(not(empty(parameters('applicationInsightsName'))), reference(variables('applicationInsightsResourceId'), '2020-02-02').connectionString, '')]",
                 "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=',listKeys(variables('storageAccountResourceId'), '2021-08-01').keys[0].value, ';EndpointSuffix=', variables('storageAccountEndpointSuffix'))]",
                 "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
                 "DOCKER_REGISTRY_SERVER_USERNAME": "",
