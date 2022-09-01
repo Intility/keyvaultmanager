@@ -1,4 +1,4 @@
-const { httpTrigger } = require('../src/SecretsGet/index');
+const { httpTrigger } = require('../src/GetSecrets/index');
 const common = require('../src/Common/common');
 const secreter = require('../src/Common/secret');
 

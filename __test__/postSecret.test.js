@@ -1,4 +1,4 @@
-const { httpTrigger } = require('../src/SecretPost/index');
+const { httpTrigger } = require('../src/PostSecret/index');
 const common = require('../src/Common/common');
 const secreter = require('../src/Common/secret');
 const validator = require('../src/Common/validate');
