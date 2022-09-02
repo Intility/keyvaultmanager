@@ -1,14 +1,14 @@
 {
   "name": "keyvaultmanager",
-  "description": "",
-  "version": "",
+  "description": "Key vault manager is a management tool to keep track of Azure Key Vault assets (like secrets).",
+  "version": "0.9.0",
   "engines": {
       "node": ">=16.0.0"
   },
   "scripts": {
     "test": "jest"
   },
-  "author": "",
+  "author": "Jonatan Vik <jonatan.vik@intility.no> (https://github.com/Jonatan-V)",
   "dependencies": {
     "@aaronpowell/azure-functions-nodejs-openapi": "^0.3.0",
     "@azure/data-tables": "^13.0.1",
