@@ -174,7 +174,8 @@
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', if(not(empty(parameters('keyVaultName'))), parameters('keyVaultName'), variables('keyVaultName')))]",
         "storageAccountEndpointSuffix": "[environment().suffixes.storage]",
         "eventTopicName": "[concat('evgt-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]",
-        "eventSubscriptionName": "[concat('evgs-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]"
+        "eventSubscriptionName": "[concat('evgs-', parameters('serviceName'), '-', uniqueString(resourceGroup().id))]",
+        "eventTriggeredFunctionName": "EventAutomation"
     },
     "resources": [
         {
@@ -610,11 +611,11 @@
                         },
                         {
                             "name": "WEBSITE_HTTPLOGGING_RETENTION_DAYS",
-                            "value": 30
+                            "value": "30"
                         },
                         {
                             "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
-                            "value": false
+                            "value": "false"
                         }
                     ],
                     "linuxFxVersion": "[concat('DOCKER|', variables('appImageRepo'), '/', variables('appImageName'), ':', parameters('appImageVersion'))]",
@@ -829,7 +830,7 @@
                         "destination": {
                             "endpointType": "WebHook",
                             "properties": {
-                                "endpointUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EventGridTrigger1&code=', listKeys(resourceId('Microsoft.Web/sites/host/', variables('functionAppName'), 'default'),'2021-03-01').systemkeys.eventgrid_extension)]",
+                                "endpointUrl": "[concat('https://', variables('functionAppName'), '.azurewebsites.net/runtime/webhooks/EventGrid?functionName=', variables('eventTriggeredFunctionName'), '&code=', listKeys(resourceId('Microsoft.Web/sites/host/', variables('functionAppName'), 'default'),'2021-03-01').systemkeys.eventgrid_extension)]",
                                 "maxEventsPerBatch": 1,
                                 "preferredBatchSizeInKilobytes": 64,
                                 "azureActiveDirectoryApplicationIdOrUri": "[parameters('authClientId')]",
@@ -876,8 +877,8 @@
                 "DOCKER_REGISTRY_SERVER_USERNAME": "",
                 "DOCKER_REGISTRY_SERVER_PASSWORD": "",
                 "FUNCTIONS_EXTENSION_VERSION": "~3",
-                "WEBSITE_HTTPLOGGING_RETENTION_DAYS": 30,
-                "WEBSITES_ENABLE_APP_SERVICE_STORAGE": false,
+                "WEBSITE_HTTPLOGGING_RETENTION_DAYS": "30",
+                "WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false",
                 "NODE_ENV": "production",
                 "eventGridTopic": "[variables('keyVaultResourceId')]",
                 "keyVaultUrl": "[reference(variables('keyVaultResourceId'), '2021-10-01').vaultUri]",
