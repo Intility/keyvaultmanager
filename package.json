@@ -12,7 +12,7 @@
   "dependencies": {
     "@aaronpowell/azure-functions-nodejs-openapi": "0.4.0",
     "@azure/data-tables": "13.2.0",
-    "@azure/identity": "2.1.0",
+    "@azure/identity": "3.1.2",
     "@azure/keyvault-secrets": "4.5.1",
     "@joi/date": "2.1.0",
     "@sendgrid/mail": "7.7.0",
