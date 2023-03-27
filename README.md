@@ -12,7 +12,7 @@ The Function App has access restrictions so you will only reach it from the whit
 ### Create application
 
 1. Sign in to your Azure tenant. Global admin or application amdin permission is required.
-2. Copy [azureapp.ps1](https://github.com/Intility/keyvaultmanager/tree/main/ARM/azureapp.ps1) locally. Add the name of the resource group you are going to deploy to and the object id of the user or service principal of the account thats going run the deployment in the variables $resourceGroupName and $deploymentObjectId.
+2. Copy [azureapp.ps1](https://github.com/Intility/keyvaultmanager/tree/main/ARM/azureapp.ps1) locally. Add the name of the resource group you are going to deploy to and the object id of the user or service principal of the account thats going to run the deployment in the variables $resourceGroupName and $deploymentObjectId.
 3. Open cloud shell in Azure portal and run the azureapp.ps1 script.
 4. Take note of the application id and secret.
 
