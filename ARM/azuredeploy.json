@@ -247,8 +247,8 @@
                     "comments": "Lock to prevent accidental deletion",
                     "type": "Microsoft.KeyVault/vaults/providers/locks",
                     "apiVersion": "2017-04-01",
-                    "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/vaultLock')]",
-                    "condition": "[parameters('deleteLocks')]",
+                    "name": "[concat(variables('keyVaultName'), '/Microsoft.Authorization/deleteLock')]",
+                    "condition": "[and(empty(parameters('keyVaultName')), parameters('deleteLocks'))]",
                     "dependsOn": [
                         "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
                     ],
@@ -263,7 +263,7 @@
                     "apiVersion": "2021-05-01-preview",
                     "name": "[concat(variables('keyVaultName'), '/Microsoft.Insights/SendToLAW')]",
                     "location": "[parameters('location')]",
-                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "condition": "[and(empty(parameters('keyVaultName')), not(equals(parameters('logAnalyticsWorkspaceName'), '')))]",
                     "dependsOn": [
                         "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
                     ],
@@ -306,7 +306,7 @@
                     "type": "Microsoft.Web/serverfarms/providers/locks",
                     "apiVersion": "2017-04-01",
                     "name": "[concat(variables('appServicePlanName'), '/Microsoft.Authorization/deleteLock')]",
-                    "condition": "[parameters('deleteLocks')]",
+                    "condition": "[and(empty(parameters('appServicePlanName')), parameters('deleteLocks'))]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
                     ],
@@ -321,7 +321,7 @@
                     "apiVersion": "2021-05-01-preview",
                     "name": "[concat(variables('appServicePlanName'), '/Microsoft.Insights/SendToLAW')]",
                     "location": "[parameters('location')]",
-                    "condition": "[not(equals(parameters('logAnalyticsWorkspaceName'), ''))]",
+                    "condition": "[and(empty(parameters('appServicePlanName')), not(equals(parameters('logAnalyticsWorkspaceName'), '')))]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
                     ],
@@ -385,7 +385,7 @@
                     "comments": "Lock to prevent accidental deletion",
                     "type": "Microsoft.Storage/storageAccounts/providers/locks",
                     "apiVersion": "2017-04-01",
-                    "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/storageLock')]",
+                    "name": "[concat(variables('storageAccountName'), '/Microsoft.Authorization/deleteLock')]",
                     "condition": "[parameters('deleteLocks')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
