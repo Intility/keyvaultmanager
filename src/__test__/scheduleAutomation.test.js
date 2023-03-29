@@ -1,13 +1,13 @@
-const scheduleAutomation = require('../src/ScheduleAutomation/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
-const alerter = require('../src/Common/alert');
-const validator = require('../src/Common/validate');
+const scheduleAutomation = require('../ScheduleAutomation/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const alerter = require('../Common/alert');
+const validator = require('../Common/validate');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
-jest.mock('../src/Common/alert');
-jest.mock('../src/Common/validate');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
+jest.mock('../Common/alert');
+jest.mock('../Common/validate');
 
 describe('Schedule Automation', () => {
   let now = new Date();

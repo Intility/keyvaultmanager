@@ -1,13 +1,13 @@
-const { httpTrigger } = require('../src/PatchSecret/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
-const validator = require('../src/Common/validate');
-const table = require('../src/Common/table');
+const { httpTrigger } = require('../PatchSecret/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const validator = require('../Common/validate');
+const table = require('../Common/table');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
-jest.mock('../src/Common/validate');
-jest.mock('../src/Common/table');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
+jest.mock('../Common/validate');
+jest.mock('../Common/table');
 
 describe('patchSecret', () => {
   let contextObj = {

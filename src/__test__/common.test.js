@@ -1,5 +1,5 @@
 const Sentry = require('@sentry/node');
-const common = require('../src/Common/common');
+const common = require('../Common/common');
 
 describe('common', () => {
   describe('captureException', () => {

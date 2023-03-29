@@ -1,9 +1,9 @@
-const { httpTrigger } = require('../src/GetSecrets/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
+const { httpTrigger } = require('../GetSecrets/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
 
 describe('getSecret', () => {
   let contextObj = {

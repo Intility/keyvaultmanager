@@ -1,11 +1,11 @@
-const { httpTrigger } = require('../src/DeleteSecret/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
-const table = require('../src/Common/table');
+const { httpTrigger } = require('../DeleteSecret/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const table = require('../Common/table');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
-jest.mock('../src/Common/table');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
+jest.mock('../Common/table');
 
 describe('deleteSecret', () => {
   let contextObj = {

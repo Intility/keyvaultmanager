@@ -1,15 +1,15 @@
-const { httpTrigger } = require('../src/PostSecret/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
-const validator = require('../src/Common/validate');
-const table = require('../src/Common/table');
+const { httpTrigger } = require('../PutSecret/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const validator = require('../Common/validate');
+const table = require('../Common/table');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
-jest.mock('../src/Common/validate');
-jest.mock('../src/Common/table');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
+jest.mock('../Common/validate');
+jest.mock('../Common/table');
 
-describe('postSecret', () => {
+describe('putSecret', () => {
   let now = new Date();
   let later = new Date(now.setMonth(now.getMonth() + 1));
   let contextObj = {
@@ -27,7 +27,6 @@ describe('postSecret', () => {
       name: 'secretName',
     },
     body: {
-      name: 'secretName',
       value: 'secretValue',
       enabled: true,
       contentType: 'test',
@@ -46,7 +45,7 @@ describe('postSecret', () => {
     headers: {
       'x-ms-client-principal': 'string',
     },
-    url: 'https://name.azurewebsites.net/api/secrets/',
+    url: 'https://name.azurewebsites.net/api/secrets/secretName',
   };
   let headersMap = new Map();
   headersMap.set('user-agent', 'azsdk-js-...');
@@ -71,10 +70,11 @@ describe('postSecret', () => {
       id: 'https://name.vault.azure.net/secrets/test/123abc',
       contentType: 'test',
       tags: {
-        managed: 'true',
-        autoRotate: 'false',
+        managed: true,
+        autoRotate: false,
         owner: 'https://this.is.the.owner',
-        metadataUrl: 'https://this.is.the.metadata',
+        metadataUrl:
+          'https://name.azurewebsites.net/api/secrets/secretName/metadata',
       },
       managed: undefined,
       vaultUrl: 'https://name.vault.azure.net',
@@ -89,8 +89,8 @@ describe('postSecret', () => {
     notBefore: now.toISOString(),
     expiresOn: later.toISOString(),
     tags: {
-      managed: 'true',
-      autoRotate: 'false',
+      managed: true,
+      autoRotate: false,
       owner: 'https://this.is.the.owner',
       metadataUrl:
         'https://name.azurewebsites.net/api/secrets/secretName/metadata',
@@ -130,38 +130,50 @@ describe('postSecret', () => {
     entityObj = mockEntityObj;
     metadataObj = mockMetadataObj;
   });
-  it('should create a secret', async () => {
+  it('should create a new secret version', async () => {
     const authorizeSpy = jest
       .spyOn(common.prototype, 'authorize')
       .mockResolvedValueOnce(true);
     const getSecretSpy = jest
       .spyOn(secreter.prototype, 'getSecret')
-      .mockRejectedValueOnce({ statusCode: 404 });
+      .mockResolvedValueOnce(secretObj);
     const validateSpy = jest
-      .spyOn(validator.prototype, 'createSecret')
+      .spyOn(validator.prototype, 'createSecretVersion')
+      .mockResolvedValueOnce(true);
+    const convertTagsSpy = jest
+      .spyOn(common.prototype, 'convertTags')
       .mockResolvedValueOnce(true);
     const createSecretSpy = jest
       .spyOn(secreter.prototype, 'createSecret')
       .mockResolvedValueOnce(secretObj);
-    const createEntitySpy = jest
-      .spyOn(table.prototype, 'createEntity')
+    const getEntitySpy = jest
+      .spyOn(table.prototype, 'getEntity')
+      .mockResolvedValueOnce(entityObj);
+    const updateEntitySpy = jest
+      .spyOn(table.prototype, 'updateEntity')
       .mockResolvedValueOnce(entityObj);
     await httpTrigger(contextObj, reqObj);
     expect(authorizeSpy).toHaveBeenCalledWith(
       reqObj.headers['x-ms-client-principal'],
       'Writer'
     );
-    expect(getSecretSpy).toHaveBeenCalledWith(reqObj.body.name);
+    expect(getSecretSpy).toHaveBeenCalledWith(reqObj.params.name);
     expect(validateSpy).toHaveBeenCalledWith(reqObj.body);
+    expect(convertTagsSpy).toHaveBeenCalledWith(reqObj.body.tags);
     expect(createSecretSpy).toHaveBeenCalledWith(
-      reqObj.body.name,
+      reqObj.params.name,
       reqObj.body.value,
       optionsObj
     );
-    expect(createEntitySpy).toHaveBeenCalledWith(
+    expect(getEntitySpy).toHaveBeenCalledWith(
+      entityObj.partitionKey,
+      entityObj.rowKey
+    );
+    expect(updateEntitySpy).toHaveBeenCalledWith(
       entityObj.partitionKey,
       entityObj.rowKey,
-      reqObj.body.metadata
+      metadataObj,
+      'Replace'
     );
   });
   it('should error if auth fails', async () => {
@@ -182,13 +194,6 @@ describe('postSecret', () => {
     expect(authorizeSpy).toThrow(authError);
     expect(captureExceptionSpy).toHaveBeenCalledWith(authError);
     authorizeSpy.mockReset();
-  });
-  it('should return 409 conflict if secret already exists', async () => {
-    const getSecretSpy = jest
-      .spyOn(secreter.prototype, 'getSecret')
-      .mockResolvedValueOnce(secretObj);
-    await httpTrigger(contextObj, reqObj);
-    expect(getSecretSpy).toHaveBeenCalledWith(reqObj.body.name);
   });
   it('should handle error if get secret fails', async () => {
     const secretError = new Error('Fake internal server error');
@@ -214,15 +219,52 @@ describe('postSecret', () => {
     getSecretSpy.mockReset();
   });
   it('should return error if validation fails', async () => {
-    const getSecretSpy = jest
-      .spyOn(secreter.prototype, 'getSecret')
-      .mockRejectedValueOnce({ statusCode: 404 });
     const validateSpy = jest
-      .spyOn(validator.prototype, 'createSecret')
+      .spyOn(validator.prototype, 'createSecretVersion')
       .mockResolvedValueOnce({ error: expect.any(Object) });
     await httpTrigger(contextObj, reqObj);
-    expect(getSecretSpy).toHaveBeenCalledWith(reqObj.body.name);
     expect(validateSpy).toHaveBeenCalledWith(reqObj.body);
+  });
+  it('should create metadata if it doesnt exist', async () => {
+    const authorizeSpy = jest
+      .spyOn(common.prototype, 'authorize')
+      .mockResolvedValueOnce(true);
+    const getSecretSpy = jest
+      .spyOn(secreter.prototype, 'getSecret')
+      .mockResolvedValueOnce(secretObj);
+    const validateSpy = jest
+      .spyOn(validator.prototype, 'createSecretVersion')
+      .mockResolvedValueOnce(true);
+    const convertTagsSpy = jest
+      .spyOn(common.prototype, 'convertTags')
+      .mockResolvedValueOnce(true);
+    const createSecretSpy = jest
+      .spyOn(secreter.prototype, 'createSecret')
+      .mockResolvedValueOnce(secretObj);
+    errorObj.request.headers.set('user-agent', 'azsdk-js-data-tables');
+    errorObj.statusCode = 404;
+    const updateEntitySpy = jest
+      .spyOn(table.prototype, 'updateEntity')
+      .mockImplementation(() => {
+        throw errorObj;
+      });
+    const upsertEntitySpy = jest
+      .spyOn(table.prototype, 'upsertEntity')
+      .mockResolvedValueOnce(entityObj);
+    await httpTrigger(contextObj, reqObj);
+    expect(authorizeSpy).toHaveBeenCalled();
+    expect(getSecretSpy).toHaveBeenCalled();
+    expect(validateSpy).toHaveBeenCalled();
+    expect(convertTagsSpy).toHaveBeenCalled();
+    expect(createSecretSpy).toHaveBeenCalled();
+    expect(updateEntitySpy).toThrow(errorObj);
+    expect(upsertEntitySpy).toHaveBeenCalledWith(
+      entityObj.partitionKey,
+      entityObj.rowKey,
+      reqObj.body.metadata,
+      'Replace'
+    );
+    updateEntitySpy.mockReset();
   });
   it('should handle error if createSecret fails', async () => {
     const authorizeSpy = jest
@@ -230,9 +272,12 @@ describe('postSecret', () => {
       .mockResolvedValueOnce(true);
     const getSecretSpy = jest
       .spyOn(secreter.prototype, 'getSecret')
-      .mockRejectedValueOnce({ statusCode: 404 });
+      .mockResolvedValueOnce(secretObj);
     const validateSpy = jest
-      .spyOn(validator.prototype, 'createSecret')
+      .spyOn(validator.prototype, 'createSecretVersion')
+      .mockResolvedValueOnce(true);
+    const convertTagsSpy = jest
+      .spyOn(common.prototype, 'convertTags')
       .mockResolvedValueOnce(true);
     const createSecretSpy = jest
       .spyOn(secreter.prototype, 'createSecret')
@@ -249,6 +294,7 @@ describe('postSecret', () => {
     expect(authorizeSpy).toHaveBeenCalled();
     expect(getSecretSpy).toHaveBeenCalled();
     expect(validateSpy).toHaveBeenCalled();
+    expect(convertTagsSpy).toHaveBeenCalled();
     expect(createSecretSpy).toHaveBeenCalled();
     expect(captureExceptionSpy).toHaveBeenCalledWith(errorObj);
     expect(errorResponseSpy).toHaveBeenCalledWith(contextObj, reqObj, errorObj);
