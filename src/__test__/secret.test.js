@@ -1,4 +1,4 @@
-const secreter = require('../src/Common/secret');
+const secreter = require('../Common/secret');
 const { SecretClient } = require('@azure/keyvault-secrets');
 
 jest.mock('@azure/keyvault-secrets');

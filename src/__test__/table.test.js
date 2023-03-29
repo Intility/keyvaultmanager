@@ -1,4 +1,4 @@
-const table = require('../src/Common/table');
+const table = require('../Common/table');
 const { TableClient } = require('@azure/data-tables');
 
 jest.mock('@azure/data-tables');

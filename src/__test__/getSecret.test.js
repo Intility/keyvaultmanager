@@ -1,13 +1,13 @@
-const { httpTrigger } = require('../src/GetSecretMetadata/index');
-const common = require('../src/Common/common');
-const secreter = require('../src/Common/secret');
-const table = require('../src/Common/table');
+const { httpTrigger } = require('../GetSecret/index');
+const common = require('../Common/common');
+const secreter = require('../Common/secret');
+const table = require('../Common/table');
 
-jest.mock('../src/Common/common');
-jest.mock('../src/Common/secret');
-jest.mock('../src/Common/table');
+jest.mock('../Common/common');
+jest.mock('../Common/secret');
+jest.mock('../Common/table');
 
-describe('getSecretMetadata', () => {
+describe('getSecret', () => {
   let contextObj = {
     invocationId: '123abc',
     res: {
@@ -68,7 +68,7 @@ describe('getSecretMetadata', () => {
     secretObj = mockSecretObj;
     entityObj = mockEntityObj;
   });
-  it('should return a secrets metadata', async () => {
+  it('should return a secret', async () => {
     const authorizeSpy = jest
       .spyOn(common.prototype, 'authorize')
       .mockResolvedValueOnce(true);
