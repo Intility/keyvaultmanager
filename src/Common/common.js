@@ -1,4 +1,3 @@
-const { setLogLevel } = require('@azure/logger');
 const Sentry = require('@sentry/node');
 const { name, version } = require('../package.json');
 
@@ -13,6 +12,7 @@ if (
   [true, 'true'].includes(process.env.enableAzureLogger)
 ) {
   // set localDev, enableAzureLogger and azureLoggerLogLevel to enable the azure logger
+  const { setLogLevel } = require('@azure/logger');
   setLogLevel(process.env.azureLoggerLogLevel || 'error');
   console.log(
     `Azure logger enbaled with log level: ${process.env.azureLoggerLogLevel}`
