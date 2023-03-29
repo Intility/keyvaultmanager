@@ -17,11 +17,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Set dir
-        run: cd src
       - name: Install dependencies
+        working-directory: ./src
         run: npm ci
       - name: Run tests and collect coverage
+        working-directory: ./src
         run: npm test
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v3
