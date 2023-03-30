@@ -1,5 +1,5 @@
 .dockerignore
-node_modules
+src/node_modules
 npm-debug.log
 Dockerfile
 .git
@@ -8,7 +8,7 @@ Dockerfile
 local.settings.json
 .vscode
 .github
-__test__
-__mocks__
-coverage
+src/__test__
+src/__mocks__
+src/coverage
 ARM
