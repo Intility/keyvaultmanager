@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/node:4-node16-appservice
+FROM mcr.microsoft.com/azure-functions/node:4-node18-appservice
 
 ### libsecret-1-dev is needed for @azure/identity to work
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,4 +12,6 @@ COPY ./src /home/site/wwwroot
 
 WORKDIR /home/site/wwwroot
 
-RUN npm ci --only=production
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN npm ci --only=production && \
+    find /home/site/wwwroot/node_modules/ ! -user root -print0 | xargs -0 chown root:root
