@@ -78,11 +78,11 @@
                 "description": "Add name of existing app service plan, or leave empty to create new plan (P1V2)"
             }
         },
-        "whitelistIp": {
+        "allowedIp": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Add IP (CIDR) to whitelist traffic to key vault manager (from your client to the api)"
+                "description": "Add IP (CIDR) to allow traffic to key vault manager (from your client to the api)"
             }
         },
         "appImageVersion": {
@@ -161,7 +161,7 @@
         "appImageRepo": "intility",
         "appImageName": "keyvaultmanager",
         "accessRestriction": {
-            "ipAddress": "[parameters('whitelistIp')]",
+            "ipAddress": "[parameters('allowedIp')]",
             "action": "Allow",
             "tag": "Default",
             "priority": 100,
