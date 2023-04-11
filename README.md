@@ -5,7 +5,7 @@
 Key vault manager is a management tool to keep track of Azure Key Vault assets (like secrets). It validates the assets for necessary properties, keeps track of where they are used, near expiry and expiration and alerts you in your preferred channel (Teams, Slack, email and SMS). The tool is built as an Azure Function App. All required resources are deployed with the ARM template. You can choose if you want to deploy the Function App to an existing App Service Plan or create a new one. You can also choose to manage an existing Key Vault or deploy a new Key Vault.
 
 Key vault manager includes event and timer triggered functions for automation as well as a CRUD API to manage secrets. The API currently supports get all secrets, get secret, post secret, patch secret, put secret version and delete secret.
-The Function App has access restrictions so you will only reach it from the whitelisted IP you add during deployment. It is protected with Azure AD authentication and authorization with reader and writer roles.
+The Function App has access restrictions so you will only reach it from the allowed IP you add during deployment. It is protected with Azure AD authentication and authorization with reader and writer roles.
 
 ## Deployment steps
 

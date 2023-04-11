@@ -165,8 +165,8 @@
             "action": "Allow",
             "tag": "Default",
             "priority": 100,
-            "name": "Whitelist",
-            "description": "Whitelist client ip"
+            "name": "Allowed",
+            "description": "Allowed client ip"
         },
         "openIdIssuer": "[concat('https://sts.windows.net/', parameters('tenantId'), '/v2.0')]",
         "applicationInsightsResourceId": "[resourceId('Microsoft.Insights/components', parameters('applicationInsightsName'))]",
